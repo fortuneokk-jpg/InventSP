@@ -213,7 +213,7 @@ const ROUTES={home:['Home',home],inventory:['Inventory',inventory],stock:['Stock
 function paintMe(){const n=S.p.full_name||S.p.email.split('@')[0];document.getElementById('uname').textContent=n;document.getElementById('urole').textContent=S.p.role[0].toUpperCase()+S.p.role.slice(1)+(S.sites.find(s=>s.id===S.p.site_id)?' · '+S.sites.find(s=>s.id===S.p.site_id).name:'')}
 async function route(){
   const [r,arg]=(location.hash.replace(/^#\//,'')||'home').split('/');const R=ROUTES[r]||ROUTES.home;
-  document.getElementById('nav').replaceChildren(...Object.entries(ROUTES).filter(([k,v])=>v[2]!=='admin'||isAdmin()).flatMap(([k,v])=>[k==='users'?el('div',{class:'sep'}):null,el('a',{href:'#/'+k,class:k===(ROUTES[r]?r:'home')?'on':''},v[0])]));
+  document.getElementById('nav').replaceChildren(...Object.entries(ROUTES).filter(([k,v])=>v[2]!=='admin'||isAdmin()).flatMap(([k,v])=>[k==='users'?el('div',{class:'sep'}):null,el('a',{href:'#/'+k,class:k===(ROUTES[r]?r:'home')?'on':''},v[0])]).filter(Boolean));
   V.replaceChildren(el('p',{class:'sub'},'Loading…'));
   try{await R[1](arg)}catch(e){V.replaceChildren(el('p',{class:'sub'},'Could not load this page.'));fail(e)}}
 async function init(){
