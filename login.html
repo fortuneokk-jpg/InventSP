@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>InventSP – Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Manrope',system-ui,sans-serif;background:#F5F8F6;color:#12201B}
+.wrap{min-height:100vh;display:flex;flex-wrap:wrap}
+.brand{flex:1 1 420px;background:#046A4E;color:#F5F8F6;padding:56px;display:flex;flex-direction:column;justify-content:space-between;gap:48px}
+.logo{display:flex;align-items:center;gap:16px}
+.tile{width:72px;height:72px;border-radius:18px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tile img{width:92%;height:92%;object-fit:contain}
+.brand h1{margin:0 0 16px;font-size:44px;line-height:1.1;font-weight:800;letter-spacing:-1px}
+.brand p{margin:0;color:#E3F1EB;font-size:18px;line-height:1.6;max-width:440px}
+.panel{flex:1 1 420px;display:flex;align-items:center;justify-content:center;padding:48px 24px}
+form{width:100%;max-width:400px;display:flex;flex-direction:column;gap:24px}
+.bar{width:40px;height:4px;border-radius:2px;background:#E10600;margin-bottom:16px}
+h2{margin:0 0 8px;font-size:32px;font-weight:800;letter-spacing:-.5px}
+.sub{margin:0;color:#4A5B54}
+.field{display:flex;flex-direction:column;gap:8px}
+label{font-size:14px;font-weight:600}
+input[type=email],input[type=password]{height:48px;padding:0 16px;font:inherit;font-size:16px;border:1.5px solid #B8C4BE;border-radius:10px;background:#fff}
+input:focus{outline:3px solid #9ADBC4;border-color:#046A4E}
+.row{display:flex;justify-content:space-between;align-items:center}
+a{color:#046A4E;font-weight:600;font-size:14px}
+.chk{display:flex;align-items:center;gap:10px;min-height:44px;font-size:15px;font-weight:400}
+.chk input{width:20px;height:20px;accent-color:#046A4E}
+button{height:52px;border:0;border-radius:10px;background:#046A4E;color:#fff;font:inherit;font-size:16px;font-weight:700;cursor:pointer}
+button:hover{background:#04503B}
+button:disabled{opacity:.7;cursor:wait}
+.msg{display:none;padding:12px 14px;border-radius:10px;font-size:15px}
+.msg.err{display:block;background:#FDECEA;color:#8A1C14;border:1px solid #F3B7B2}
+.msg.ok{display:block;background:#E6F4EE;color:#04503B;border:1px solid #A8D8C5}
+.foot{text-align:center;font-size:14px;color:#4A5B54;margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="brand">
+<div class="logo"><div class="tile"><img src="Smart_Parker_Logo.jpg" alt="Smart Parker logo"></div>
+<div><div style="font-size:24px;font-weight:800">InventSP</div><div style="font-size:14px;color:#E3F1EB">by Smart Parker</div></div></div>
+<div><h1>Know what's in stock, everywhere.</h1><p>Track, count and move inventory across Smart Parker sites, from the office or the handheld.</p></div>
+<p style="margin:0;font-size:14px;color:#D3E8DF">© Smart Parker</p>
+</div>
+<div class="panel">
+<form id="f" novalidate>
+<div><div class="bar"></div><h2>Welcome back</h2><p class="sub">Sign in to your InventSP account.</p></div>
+<div id="msg" class="msg" role="alert"></div>
+<div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="username" placeholder="you@company.com" required></div>
+<div class="field"><div class="row"><label for="pw">Password</label><a href="#" id="forgot">Forgot password?</a></div>
+<input id="pw" type="password" autocomplete="current-password" placeholder="Enter your password" required></div>
+<label class="chk"><input type="checkbox" id="keep" checked>Keep me signed in on this device</label>
+<button id="go" type="submit">Sign in</button>
+<p class="foot">Need access? Contact your site administrator.</p>
+</form>
+</div>
+</div>
+<script>
+const SUPABASE_URL='https://xstjznhcpungxhrjrvdq.supabase.co';
+const SUPABASE_KEY='sb_publishable_hkNdUICElgNZRd-hXHwgfw_WMgitNHU';
+const $=id=>document.getElementById(id);
+const msg=(t,k)=>{$('msg').textContent=t;$('msg').className='msg '+k};
+let db;
+function client(){
+  db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,storage:$('keep').checked?localStorage:sessionStorage}});
+  return db;
+}
+$('f').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const email=$('email').value.trim(),pw=$('pw').value;
+  if(!email||!pw){msg('Enter your email and password.','err');return}
+  $('go').disabled=true;$('go').textContent='Signing in…';msg('','');$('msg').className='msg';
+  try{
+    const c=client();
+    const {error}=await c.auth.signInWithPassword({email,password:pw});
+    if(error){msg('Wrong email or password. Please try again.','err');return}
+    const {data:p}=await c.rpc('current_profile');
+    if(!p||p.is_active===false){await c.auth.signOut();msg('This account is disabled. Contact your administrator.','err');return}
+    msg('Signed in as '+(p.full_name||p.email)+' ('+p.role+').','ok');
+    // TODO: window.location.href='dashboard.html';
+  }catch(x){msg('Could not reach the server. Check your connection.','err')}
+  finally{$('go').disabled=false;$('go').textContent='Sign in'}
+});
+$('forgot').addEventListener('click',async e=>{
+  e.preventDefault();
+  const email=$('email').value.trim();
+  if(!email){msg('Enter your email above, then tap "Forgot password?".','err');return}
+  const {error}=await client().auth.resetPasswordForEmail(email);
+  msg(error?'Could not send reset email. Try again later.':'If that email has an account, a reset link is on its way.',error?'err':'ok');
+});
+</script>
+</body>
+</html>
