@@ -65,6 +65,7 @@ const SUPABASE_KEY='sb_publishable_hkNdUICElgNZRd-hXHwgfw_WMgitNHU';
 const $=id=>document.getElementById(id);
 const msg=(t,k)=>{$('msg').textContent=t;$('msg').className='msg '+k};
 let db;
+(async()=>{for(const st of [localStorage,sessionStorage]){const c=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storage:st}});const {data}=await c.auth.getSession();if(data.session){window.location.replace('dashboard.html');return}}})();
 function client(){
   db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,storage:$('keep').checked?localStorage:sessionStorage}});
   return db;
@@ -80,8 +81,8 @@ $('f').addEventListener('submit',async e=>{
     if(error){msg('Wrong email or password. Please try again.','err');return}
     const {data:p}=await c.rpc('current_profile');
     if(!p||p.is_active===false){await c.auth.signOut();msg('This account is disabled. Contact your administrator.','err');return}
-    msg('Signed in as '+(p.full_name||p.email)+' ('+p.role+').','ok');
-    // TODO: window.location.href='dashboard.html';
+    msg('Signed in. Opening your home page…','ok');
+    window.location.href='dashboard.html';
   }catch(x){msg('Could not reach the server. Check your connection.','err')}
   finally{$('go').disabled=false;$('go').textContent='Sign in'}
 });
