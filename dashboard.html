@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>InventSP</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Manrope',system-ui,sans-serif;background:#F5F8F6;color:#12201B}
+a{color:inherit;text-decoration:none}
+.wrap{min-height:100vh;display:flex;flex-wrap:wrap}
+aside{flex:0 0 248px;min-width:220px;background:#046A4E;color:#fff;padding:24px 16px;display:flex;flex-direction:column;gap:24px}
+.brand{display:flex;align-items:center;gap:12px;padding:0 8px;font-size:20px;font-weight:800}
+.tile{width:48px;height:48px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tile img{width:92%;height:92%;object-fit:contain}
+nav{display:flex;flex-direction:column;gap:4px;font-size:15px;font-weight:600}
+nav a{padding:12px;border-radius:10px}
+nav a:hover{background:#0A7C5D}
+nav a.on{background:#fff;color:#046A4E}
+.sep{height:1px;background:#2D8A71;margin:8px 0}
+.me{margin-top:auto;padding:12px;border-radius:10px;background:#04503B;font-size:14px}
+.me b{display:block;overflow-wrap:anywhere}.me span{color:#D3E8DF}
+.me button{margin-top:10px;width:100%;height:40px;border:1px solid #6FB9A3;background:transparent;color:#fff;border-radius:8px;font:inherit;font-weight:700;cursor:pointer}
+main{flex:1 1 640px;min-width:0;padding:32px;display:flex;flex-direction:column;gap:24px}
+.head{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between}
+h1{margin:0 0 4px;font-size:28px;font-weight:800;letter-spacing:-.5px}
+.sub{margin:0;color:#4A5B54}
+h2{margin:0;font-size:18px;font-weight:800}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+input,select,textarea{height:44px;padding:0 14px;font:inherit;font-size:15px;border:1.5px solid #B8C4BE;border-radius:10px;background:#fff;max-width:100%}
+input:focus,select:focus{outline:3px solid #9ADBC4;border-color:#046A4E}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:600;flex:1 1 180px}
+.btn{height:44px;padding:0 18px;border:0;border-radius:10px;background:#046A4E;color:#fff;font:inherit;font-weight:700;cursor:pointer}
+.btn:hover{background:#04503B}.btn:disabled{opacity:.6;cursor:wait}
+.btn.alt{background:#fff;color:#046A4E;border:1.5px solid #046A4E}.btn.alt:hover{background:#F0F7F4}
+.btn.sm{height:36px;padding:0 12px;font-size:14px}
+.btn.red{background:#B42318}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.card{background:#fff;border:1px solid #DCE5E0;border-radius:14px}
+.pad{padding:20px;display:flex;flex-direction:column;gap:16px}
+.qa{padding:18px;display:flex;flex-direction:column;gap:4px}.qa b{font-size:16px}.qa span{font-size:14px;color:#4A5B54}
+.qa:hover{border-color:#046A4E;background:#F0F7F4}
+.kpi{padding:20px}.kpi div:first-child{font-size:14px;color:#4A5B54;font-weight:600}.kpi div:last-child{font-size:36px;font-weight:800;margin-top:6px}
+.cols{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:560px}
+th{padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#4A5B54;letter-spacing:.5px;text-transform:uppercase}
+td{padding:12px 16px;border-top:1px solid #E6ECE8;font-size:14px;vertical-align:middle}
+td input,td select{height:36px;font-size:14px;width:100%;min-width:90px}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700}
+.b-ok{background:#E6F4EE;color:#04503B}.b-low{background:#FFF4E0;color:#9A5300}.b-out{background:#FDECEA;color:#B42318}.b-gray{background:#EDF0EE;color:#4A5B54}
+.alert{display:flex;justify-content:space-between;gap:12px;padding:12px;border-radius:10px;font-size:14px}
+.alert.out{background:#FDECEA;color:#B42318}.alert.low{background:#FFF4E0;color:#9A5300}.alert b{color:#12201B}.alert i{font-style:normal;font-weight:700;white-space:nowrap}
+.empty{padding:16px;color:#4A5B54;font-size:14px}
+#toast{position:fixed;right:20px;bottom:20px;max-width:360px;padding:14px 18px;border-radius:12px;color:#fff;font-weight:600;font-size:15px;display:none;z-index:9}
+.lines{display:flex;flex-direction:column;gap:10px}
+.sec{padding:18px 16px 12px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+<aside>
+<div class="brand"><div class="tile"><img src="Smart_Parker_Logo.jpg" alt="Smart Parker logo"></div>InventSP</div>
+<nav id="nav" aria-label="Main"></nav>
+<div class="me"><b id="uname">Loading…</b><span id="urole"></span><button id="out" type="button">Sign out</button></div>
+</aside>
+<main id="view"></main>
+</div>
+<div id="toast" role="status"></div>
+<script>
+const URL_='https://xstjznhcpungxhrjrvdq.supabase.co',KEY='sb_publishable_hkNdUICElgNZRd-hXHwgfw_WMgitNHU';
+const S={db:null,p:null,sites:[],items:[]};
+const V=document.getElementById('view');
+const el=(t,p,...k)=>{const e=document.createElement(t);for(const [a,v] of Object.entries(p||{})){if(a==='class')e.className=v;else if(a.startsWith('on'))e.addEventListener(a.slice(2),v);else if(a==='for')e.htmlFor=v;else if(v!==false&&v!=null)e[a]=v}for(const c of k.flat()){if(c==null||c===false)continue;e.append(c.nodeType?c:document.createTextNode(String(c)))}return e};
+const fmt=d=>new Date(d).toLocaleString([],{dateStyle:'medium',timeStyle:'short'});
+const ok=r=>{if(r.error)throw r.error;return r.data};
+const isMgr=()=>['admin','manager'].includes(S.p.role),isAdmin=()=>S.p.role==='admin';
+let tt;function toast(m,bad){const t=document.getElementById('toast');t.textContent=m;t.style.background=bad?'#B42318':'#04503B';t.style.display='block';clearTimeout(tt);tt=setTimeout(()=>t.style.display='none',4500)}
+const fail=e=>toast((e&&e.message)||'Something went wrong',true);
+function sel(opts,val,p){const s=el('select',p,opts.map(o=>el('option',{value:o.v},o.t)));if(val!=null)s.value=val;return s}
+const siteOpts=(all)=>[...(all?[{v:'',t:'All sites'}]:[]),...S.sites.filter(s=>s.is_active).map(s=>({v:s.id,t:s.name}))];
+const itemOpts=()=>S.items.filter(i=>i.is_active).map(i=>({v:i.id,t:i.sku+' – '+i.name}));
+const field=(label,input)=>el('label',{class:'f'},label,input);
+const head=(t,s,...a)=>el('div',{class:'head'},el('div',{},el('h1',{},t),el('p',{class:'sub'},s)),el('div',{class:'row'},a));
+const tbl=(h,rows,empty)=>el('div',{class:'scroll'},el('table',{},el('thead',{},el('tr',{},h.map(x=>el('th',{},x)))),el('tbody',{},rows.length?rows.map(r=>el('tr',{},r.map(c=>el('td',{},c)))):el('tr',{},el('td',{colSpan:h.length,class:'empty'},empty||'Nothing here yet.')))));
+const badge=(t,c)=>el('span',{class:'badge '+c},t);
+const TYPES={receive:'Received',issue:'Issued',transfer_out:'Transfer out',transfer_in:'Transfer in',count_adjust:'Count adjusted'};
+async function loadRef(){const [a,b]=await Promise.all([S.db.from('sites').select('*').order('name'),S.db.from('items').select('*').order('name')]);S.sites=ok(a);S.items=ok(b)}
+function csv(name,head,rows){const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const t=[head,...rows].map(r=>r.map(q).join(',')).join('\n');const a=el('a',{href:URL.createObjectURL(new Blob([t],{type:'text/csv'})),download:name});document.body.append(a);a.click();a.remove()}
+
+/* ---------- HOME ---------- */
+async function home(){
+  const name=S.p.full_name||S.p.email.split('@')[0],h=new Date().getHours();
+  const site=sel(siteOpts(true),S.p.site_id||'');
+  const k=['Total items','Low stock','Out of stock','Transfers pending'].map((t,i)=>el('div',{class:'card kpi'},el('div',{},t),el('div',{style:i==1?'color:#9A5300':i==2?'color:#B42318':''},'–')));
+  const na=el('div',{class:'pad'}),mv=el('div',{});
+  V.replaceChildren(
+    head((h<12?'Good morning, ':h<18?'Good afternoon, ':'Good evening, ')+name,'Here is what is happening across your sites today.',site),
+    el('section',{class:'grid'},[['Receive stock','Add items coming in','#/stock'],['Issue stock','Record items going out','#/stock'],['New transfer','Move stock between sites','#/transfers'],['Start a count','Scan and reconcile','#/counts']].map(a=>el('a',{href:a[2],class:'card qa'},el('b',{},a[0]),el('span',{},a[1])))),
+    el('section',{class:'grid'},k),
+    el('div',{class:'cols'},el('section',{class:'card',style:'flex:2 1 520px;min-width:0'},el('div',{class:'sec'},el('h2',{},'Recent movements'),el('a',{href:'#/reports',style:'font-weight:700;color:#046A4E;font-size:14px'},'All reports')),mv),el('section',{class:'card',style:'flex:1 1 300px;min-width:0'},el('div',{class:'sec'},el('h2',{},'Needs attention')),na)));
+  const load=async()=>{const s=site.value||null;
+    const [a,b,c]=await Promise.all([S.db.rpc('dashboard_summary',{p_site:s}),S.db.rpc('needs_attention',{p_site:s}),S.db.from('recent_movements').select('*').order('created_at',{ascending:false}).limit(8)]);
+    const r=ok(a)[0]||{};[r.total_items,r.low_stock,r.out_of_stock,r.transfers_pending].forEach((v,i)=>k[i].lastChild.textContent=v??0);
+    const n=ok(b);na.replaceChildren(...(n.length?n.slice(0,6).map(i=>el('div',{class:'alert '+i.status},el('b',{},i.name),el('i',{},i.status==='out'?'Out of stock':'Low: '+i.quantity+' left'))):[el('div',{class:'empty'},'Nothing needs attention right now.')]));
+    mv.replaceChildren(tbl(['Item','Type','Qty','Site','By','When'],ok(c).map(x=>[x.item_name,TYPES[x.type]||x.type,x.quantity,x.site_name,x.created_by_name||'',fmt(x.created_at)]),'No movements yet.'))};
+  site.addEventListener('change',()=>load().catch(fail));load().catch(fail)}
+
+/* ---------- INVENTORY ---------- */
+async function inventory(){
+  const rows=ok(await S.db.from('items').select('*, stock_levels(quantity)').order('name'));
+  const q=el('input',{type:'search',placeholder:'Search name, SKU or barcode'}),form=el('div'),body=el('div');
+  const status=(i,t)=>!i.is_active?badge('Inactive','b-gray'):t===0?badge('Out','b-out'):(i.reorder_level>0&&t<=i.reorder_level)?badge('Low','b-low'):badge('OK','b-ok');
+  const draw=()=>{const f=q.value.toLowerCase();body.replaceChildren(tbl(['SKU','Name','Category','On hand','Reorder at','Status',''],rows.filter(i=>(i.name+i.sku+(i.barcode||'')).toLowerCase().includes(f)).map(i=>{const t=i.stock_levels.reduce((a,s)=>a+s.quantity,0);return[i.sku,i.name,i.category||'',t+' '+i.unit,i.reorder_level,status(i,t),isMgr()?el('button',{class:'btn alt sm',onclick:()=>edit(i)},'Edit'):'']}),'No items match.'))};
+  const edit=i=>{const v=i||{unit:'each',reorder_level:0,is_active:true};
+    const f={sku:el('input',{value:v.sku||'',required:true}),name:el('input',{value:v.name||'',required:true}),barcode:el('input',{value:v.barcode||''}),category:el('input',{value:v.category||''}),unit:el('input',{value:v.unit}),rl:el('input',{type:'number',min:0,value:v.reorder_level}),act:sel([{v:'1',t:'Active'},{v:'0',t:'Inactive'}],v.is_active?'1':'0')};
+    form.replaceChildren(el('div',{class:'card pad'},el('h2',{},i?'Edit item':'Add item'),el('div',{class:'row'},field('SKU',f.sku),field('Name',f.name),field('Barcode',f.barcode)),el('div',{class:'row'},field('Category',f.category),field('Unit',f.unit),field('Reorder level',f.rl),field('Status',f.act)),
+      el('div',{class:'row'},el('button',{class:'btn',onclick:async()=>{try{const d={sku:f.sku.value.trim(),name:f.name.value.trim(),barcode:f.barcode.value.trim()||null,category:f.category.value.trim()||null,unit:f.unit.value.trim()||'each',reorder_level:+f.rl.value||0,is_active:f.act.value==='1',updated_at:new Date().toISOString()};if(!d.sku||!d.name)throw new Error('SKU and name are required');ok(i?await S.db.from('items').update(d).eq('id',i.id):await S.db.from('items').insert(d));toast('Item saved');await loadRef();inventory()}catch(e){fail(e)}}},'Save'),el('button',{class:'btn alt',onclick:()=>form.replaceChildren()},'Cancel'))))};
+  V.replaceChildren(head('Inventory','Everything you stock, and how much is on hand.',q,isMgr()?el('button',{class:'btn',onclick:()=>edit()},'Add item'):null),form,el('div',{class:'card'},body));
+  q.addEventListener('input',draw);draw()}
+
+/* ---------- STOCK IN / OUT ---------- */
+async function stock(){
+  const type=sel([{v:'receive',t:'Receive (stock in)'},{v:'issue',t:'Issue (stock out)'}],'receive'),item=sel(itemOpts()),site=sel(siteOpts(),S.p.site_id||''),qty=el('input',{type:'number',min:1,value:1}),note=el('input',{placeholder:'Optional'}),find=el('input',{placeholder:'Type or scan SKU / barcode'}),have=el('p',{class:'sub'}),list=el('div');
+  const upd=async()=>{if(!item.value||!site.value){have.textContent='';return}const r=ok(await S.db.from('stock_levels').select('quantity').eq('item_id',item.value).eq('site_id',site.value).maybeSingle());have.textContent='On hand at this site: '+(r?r.quantity:0)};
+  find.addEventListener('change',()=>{const v=find.value.trim().toLowerCase();const m=S.items.find(i=>i.sku.toLowerCase()===v||(i.barcode||'').toLowerCase()===v);if(m){item.value=m.id;upd().catch(fail)}else if(v)toast('No item with that SKU or barcode',true)});
+  item.addEventListener('change',()=>upd().catch(fail));site.addEventListener('change',()=>upd().catch(fail));
+  const btn=el('button',{class:'btn',onclick:async()=>{try{const n=Math.floor(+qty.value);if(!item.value||!site.value)throw new Error('Choose an item and a site');if(!(n>0))throw new Error('Quantity must be 1 or more');btn.disabled=true;
+    ok(await S.db.from('stock_movements').insert({item_id:item.value,site_id:site.value,type:type.value,delta:type.value==='issue'?-n:n,note:note.value.trim()||null}));toast('Recorded');qty.value=1;note.value='';find.value='';await upd();await recent()}catch(e){fail(/stock_levels_quantity_check|violates check/.test(e.message||'')?{message:'Not enough stock at this site'}:e)}finally{btn.disabled=false}}},'Record');
+  const recent=async()=>{const r=ok(await S.db.from('recent_movements').select('*').order('created_at',{ascending:false}).limit(15));list.replaceChildren(tbl(['Item','Type','Qty','Site','By','When'],r.map(x=>[x.item_name,TYPES[x.type]||x.type,x.quantity,x.site_name,x.created_by_name||'',fmt(x.created_at)]),'No movements yet.'))};
+  V.replaceChildren(head('Stock in / out','Record items received or issued. Stock levels update instantly.'),
+    el('div',{class:'card pad'},el('div',{class:'row'},field('Action',type),field('Find by SKU / barcode',find)),el('div',{class:'row'},field('Item',item),field('Site',site),field('Quantity',qty)),field('Note',note),have,el('div',{class:'row'},btn)),
+    el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Latest movements')),list));
+  upd().catch(fail);recent().catch(fail)}
+
+/* ---------- TRANSFERS ---------- */
+async function transfers(){
+  const from=sel(siteOpts(),S.p.site_id||''),to=sel(siteOpts()),note=el('input',{placeholder:'Optional'}),lines=el('div',{class:'lines'}),list=el('div');
+  if(S.sites.length>1&&from.value===to.value)to.selectedIndex=(from.selectedIndex+1)%to.options.length;
+  const addLine=()=>{const it=sel(itemOpts()),q=el('input',{type:'number',min:1,value:1,style:'width:110px'});const r=el('div',{class:'row'},it,q,el('button',{class:'btn alt sm',type:'button',onclick:()=>r.remove()},'Remove'));r._g=()=>({item_id:it.value,quantity:Math.floor(+q.value)});lines.append(r)};addLine();
+  const go=el('button',{class:'btn',onclick:async()=>{try{if(from.value===to.value)throw new Error('Choose two different sites');const ls=[...lines.children].map(r=>r._g()).filter(l=>l.item_id&&l.quantity>0);if(!ls.length)throw new Error('Add at least one item');if(new Set(ls.map(l=>l.item_id)).size!==ls.length)throw new Error('Each item can only appear once');go.disabled=true;
+    const t=ok(await S.db.from('transfers').insert({from_site_id:from.value,to_site_id:to.value,note:note.value.trim()||null}).select('id').single());ok(await S.db.from('transfer_lines').insert(ls.map(l=>({...l,transfer_id:t.id}))));toast('Transfer created');transfers()}catch(e){fail(e)}finally{go.disabled=false}}},'Create transfer');
+  V.replaceChildren(head('Transfers','Move stock between sites. Stock moves when you complete the transfer.'),
+    el('div',{class:'card pad'},el('div',{class:'row'},field('From site',from),field('To site',to)),el('div',{},el('b',{},'Items'),lines),el('div',{class:'row'},el('button',{class:'btn alt sm',type:'button',onclick:addLine},'+ Add item')),field('Note',note),el('div',{class:'row'},go)),
+    el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Recent transfers')),list));
+  const rows=ok(await S.db.from('transfers').select('id,status,note,created_at,from_site:sites!transfers_from_site_id_fkey(name),to_site:sites!transfers_to_site_id_fkey(name),transfer_lines(quantity,items(name))').order('created_at',{ascending:false}).limit(30));
+  const act=(t)=>t.status!=='pending'?'':el('div',{class:'row'},el('button',{class:'btn sm',onclick:async()=>{try{ok(await S.db.rpc('complete_transfer',{p_transfer_id:t.id}));toast('Transfer completed');transfers()}catch(e){fail(/stock_levels|check/.test(e.message||'')?{message:'Not enough stock at the sending site'}:e)}}},'Complete'),el('button',{class:'btn alt sm',onclick:async()=>{try{ok(await S.db.from('transfers').update({status:'cancelled'}).eq('id',t.id));transfers()}catch(e){fail(e)}}},'Cancel'));
+  list.replaceChildren(tbl(['Created','From → To','Items','Status',''],rows.map(t=>[fmt(t.created_at),t.from_site.name+' → '+t.to_site.name,t.transfer_lines.map(l=>l.quantity+' × '+l.items.name).join(', '),badge(t.status[0].toUpperCase()+t.status.slice(1),t.status==='completed'?'b-ok':t.status==='pending'?'b-low':'b-gray'),act(t)]),'No transfers yet.'))}
+
+/* ---------- STOCK COUNTS ---------- */
+async function counts(id){
+  if(id)return countDetail(id);
+  const site=sel(siteOpts(),S.p.site_id||''),list=el('div');
+  const go=el('button',{class:'btn',onclick:async()=>{try{go.disabled=true;if(!site.value)throw new Error('Choose a site');
+    const c=ok(await S.db.from('stock_counts').insert({site_id:site.value}).select('id').single());const lv=ok(await S.db.from('stock_levels').select('item_id,quantity').eq('site_id',site.value));const m=Object.fromEntries(lv.map(l=>[l.item_id,l.quantity]));
+    const ls=S.items.filter(i=>i.is_active).map(i=>({count_id:c.id,item_id:i.id,expected:m[i.id]||0}));if(ls.length)ok(await S.db.from('stock_count_lines').insert(ls));location.hash='#/counts/'+c.id}catch(e){fail(e);go.disabled=false}}},'Start count');
+  V.replaceChildren(head('Stock counts','Count what is physically on the shelf and reconcile the differences.'),el('div',{class:'card pad'},el('div',{class:'row'},field('Site',site),go)),el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Counts')),list));
+  const r=ok(await S.db.from('stock_counts').select('id,status,started_at,closed_at,sites(name)').order('started_at',{ascending:false}).limit(30));
+  list.replaceChildren(tbl(['Started','Site','Status',''],r.map(c=>[fmt(c.started_at),c.sites.name,badge(c.status==='open'?'Open':'Closed',c.status==='open'?'b-low':'b-ok'),el('a',{href:'#/counts/'+c.id,class:'btn alt sm',style:'display:inline-flex;align-items:center'},c.status==='open'?'Continue':'View')]),'No counts yet.'))}
+async function countDetail(id){
+  const c=ok(await S.db.from('stock_counts').select('id,status,started_at,sites(name)').eq('id',id).single());
+  const ls=ok(await S.db.from('stock_count_lines').select('item_id,expected,counted,items(name,sku)').eq('count_id',id));ls.sort((a,b)=>a.items.name.localeCompare(b.items.name));
+  const open=c.status==='open',ins=ls.map(l=>el('input',{type:'number',min:0,value:l.counted??'',disabled:!open,placeholder:'–'})),vr=ls.map(()=>el('span',{}));
+  const show=()=>ls.forEach((l,i)=>{const v=ins[i].value===''?null:+ins[i].value-l.expected;vr[i].textContent=v==null?'':(v>0?'+':'')+v;vr[i].style.color=v?'#B42318':'#4A5B54';vr[i].style.fontWeight=700});ins.forEach(i=>i.addEventListener('input',show));show();
+  const save=async()=>ok(await S.db.from('stock_count_lines').upsert(ls.map((l,i)=>({count_id:id,item_id:l.item_id,expected:l.expected,counted:ins[i].value===''?null:Math.max(0,Math.floor(+ins[i].value))})).filter(r=>r.counted!==null),{onConflict:'count_id,item_id'}));
+  V.replaceChildren(head('Count – '+c.sites.name,'Started '+fmt(c.started_at)+' · '+(open?'Open':'Closed'),el('a',{href:'#/counts',class:'btn alt',style:'display:inline-flex;align-items:center'},'Back'),
+    open?el('button',{class:'btn alt',onclick:async()=>{try{await save();toast('Progress saved')}catch(e){fail(e)}}},'Save progress'):null,
+    open?el('button',{class:'btn',onclick:async()=>{if(!confirm('Close this count? Differences will be applied to stock.'))return;try{await save();ok(await S.db.rpc('close_stock_count',{p_count_id:id}));toast('Count closed and stock adjusted');location.hash='#/counts'}catch(e){fail(e)}}},'Close & apply'):null),
+    el('div',{class:'card'},tbl(['SKU','Item','Expected','Counted','Difference'],ls.map((l,i)=>[l.items.sku,l.items.name,l.expected,ins[i],vr[i]]),'No items.')))}
+
+/* ---------- REPORTS ---------- */
+async function reports(){
+  const today=new Date().toISOString().slice(0,10),from=el('input',{type:'date',value:new Date(Date.now()-30*864e5).toISOString().slice(0,10)}),to=el('input',{type:'date',value:today}),site=sel(siteOpts(true),''),type=sel([{v:'',t:'All types'},...Object.entries(TYPES).map(([v,t])=>({v,t}))],''),a=el('div'),b=el('div');
+  let stockRows=[],mvRows=[];
+  const run=async()=>{try{
+    let q1=S.db.from('stock_levels').select('quantity,items(sku,name,reorder_level),sites(name)');if(site.value)q1=q1.eq('site_id',site.value);
+    stockRows=ok(await q1).sort((x,y)=>x.items.name.localeCompare(y.items.name));
+    a.replaceChildren(tbl(['SKU','Item','Site','On hand','Reorder at'],stockRows.map(r=>[r.items.sku,r.items.name,r.sites.name,r.quantity,r.items.reorder_level]),'No stock recorded.'));
+    let q2=S.db.from('stock_movements').select('created_at,type,delta,note,created_by_name,items(sku,name),sites(name)').gte('created_at',from.value+'T00:00:00').lte('created_at',to.value+'T23:59:59').order('created_at',{ascending:false}).limit(1000);if(site.value)q2=q2.eq('site_id',site.value);if(type.value)q2=q2.eq('type',type.value);
+    mvRows=ok(await q2);b.replaceChildren(tbl(['When','Item','Type','Change','Site','By','Note'],mvRows.map(r=>[fmt(r.created_at),r.items.name,TYPES[r.type],(r.delta>0?'+':'')+r.delta,r.sites.name,r.created_by_name||'',r.note||'']),'No movements in this period.'))}catch(e){fail(e)}};
+  [from,to,site,type].forEach(x=>x.addEventListener('change',run));
+  V.replaceChildren(head('Reports','Stock on hand and movement history. Download any report as a spreadsheet file.'),el('div',{class:'card pad'},el('div',{class:'row'},field('From',from),field('To',to),field('Site',site),field('Movement type',type))),
+    el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Stock on hand'),el('button',{class:'btn alt sm',onclick:()=>csv('stock-on-hand.csv',['SKU','Item','Site','On hand','Reorder at'],stockRows.map(r=>[r.items.sku,r.items.name,r.sites.name,r.quantity,r.items.reorder_level]))},'Download CSV')),a),
+    el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Movements'),el('button',{class:'btn alt sm',onclick:()=>csv('movements.csv',['When','SKU','Item','Type','Change','Site','By','Note'],mvRows.map(r=>[r.created_at,r.items.sku,r.items.name,TYPES[r.type],r.delta,r.sites.name,r.created_by_name,r.note]))},'Download CSV')),b));run()}
+
+/* ---------- USERS (admin) ---------- */
+async function users(){
+  if(!isAdmin()){V.replaceChildren(head('Users','Only admins can manage users.'));return}
+  const ROLES=[{v:'admin',t:'Admin'},{v:'manager',t:'Manager'},{v:'operator',t:'Operator'}],list=el('div');
+  const f={name:el('input'),email:el('input',{type:'email'}),pw:el('input',{type:'text',placeholder:'Min 8 characters'}),role:sel(ROLES,'operator'),site:sel([{v:'',t:'No site'},...siteOpts()],'')};
+  const add=el('button',{class:'btn',onclick:async()=>{try{add.disabled=true;ok(await S.db.rpc('admin_create_user',{p_email:f.email.value,p_password:f.pw.value,p_full_name:f.name.value,p_role:f.role.value,p_site_id:f.site.value||null}));toast('User created. Share the temporary password with them.');users()}catch(e){fail(e);add.disabled=false}}},'Add user');
+  V.replaceChildren(head('Users','Add people and control what they can do.'),
+    el('div',{class:'card pad'},el('h2',{},'Add user'),el('div',{class:'row'},field('Full name',f.name),field('Email',f.email),field('Temporary password',f.pw)),el('div',{class:'row'},field('Role',f.role),field('Site',f.site)),el('div',{class:'row'},add)),
+    el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Team')),list));
+  const r=ok(await S.db.from('profiles').select('*').order('created_at'));
+  list.replaceChildren(tbl(['Name','Email','Role','Site','Active',''],r.map(u=>{const n=el('input',{value:u.full_name||''}),ro=sel(ROLES,u.role),si=sel([{v:'',t:'No site'},...siteOpts()],u.site_id||''),ac=el('input',{type:'checkbox',checked:u.is_active,style:'width:20px;height:20px;min-width:0'});
+    return[n,u.email,ro,si,ac,el('button',{class:'btn alt sm',onclick:async()=>{try{if(u.id===S.p.id&&(ro.value!=='admin'||!ac.checked))throw new Error('You cannot remove your own admin access');ok(await S.db.from('profiles').update({full_name:n.value.trim()||null,role:ro.value,site_id:si.value||null,is_active:ac.checked}).eq('id',u.id));toast('Saved')}catch(e){fail(e)}}},'Save')]})))}
+
+/* ---------- SETTINGS ---------- */
+async function settings(){
+  const nm=el('input',{value:S.p.full_name||''}),p1=el('input',{type:'password',autocomplete:'new-password'}),p2=el('input',{type:'password',autocomplete:'new-password'}),sl=el('div');
+  const drawSites=()=>sl.replaceChildren(tbl(['Code','Name','Status',''],S.sites.map(s=>[s.code,s.name,badge(s.is_active?'Active':'Inactive',s.is_active?'b-ok':'b-gray'),isMgr()?el('button',{class:'btn alt sm',onclick:async()=>{try{ok(await S.db.from('sites').update({is_active:!s.is_active}).eq('id',s.id));await loadRef();drawSites()}catch(e){fail(e)}}},s.is_active?'Deactivate':'Activate'):'']),'No sites yet.'));
+  const sc=el('input',{placeholder:'e.g. MBA'}),sn=el('input',{placeholder:'e.g. Mbabane Main'});
+  V.replaceChildren(head('Settings','Your account and your sites.'),
+    el('div',{class:'card pad'},el('h2',{},'My profile'),el('div',{class:'row'},field('Full name',nm),field('Email',el('input',{value:S.p.email,disabled:true})),field('Role',el('input',{value:S.p.role,disabled:true}))),el('div',{class:'row'},el('button',{class:'btn',onclick:async()=>{try{ok(await S.db.from('profiles').update({full_name:nm.value.trim()||null}).eq('id',S.p.id));S.p.full_name=nm.value.trim()||null;paintMe();toast('Profile saved')}catch(e){fail(e)}}},'Save'))),
+    el('div',{class:'card pad'},el('h2',{},'Change password'),el('div',{class:'row'},field('New password',p1),field('Repeat new password',p2)),el('div',{class:'row'},el('button',{class:'btn',onclick:async()=>{try{if(p1.value.length<8)throw new Error('Use at least 8 characters');if(p1.value!==p2.value)throw new Error('The passwords do not match');ok(await S.db.auth.updateUser({password:p1.value}));p1.value=p2.value='';toast('Password changed')}catch(e){fail(e)}}},'Change password'))),
+    el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Sites')),sl,isMgr()?el('div',{class:'pad'},el('div',{class:'row'},field('Code',sc),field('Name',sn)),el('div',{class:'row'},el('button',{class:'btn',onclick:async()=>{try{if(!sc.value.trim()||!sn.value.trim())throw new Error('Enter a code and a name');ok(await S.db.from('sites').insert({code:sc.value.trim().toUpperCase(),name:sn.value.trim()}));sc.value=sn.value='';await loadRef();drawSites();toast('Site added')}catch(e){fail(e)}}},'Add site'))):null));drawSites()}
+
+/* ---------- SHELL ---------- */
+const ROUTES={home:['Home',home],inventory:['Inventory',inventory],stock:['Stock in / out',stock],transfers:['Transfers',transfers],counts:['Stock counts',counts],reports:['Reports',reports],users:['Users',users,'admin'],settings:['Settings',settings]};
+function paintMe(){const n=S.p.full_name||S.p.email.split('@')[0];document.getElementById('uname').textContent=n;document.getElementById('urole').textContent=S.p.role[0].toUpperCase()+S.p.role.slice(1)+(S.sites.find(s=>s.id===S.p.site_id)?' · '+S.sites.find(s=>s.id===S.p.site_id).name:'')}
+async function route(){
+  const [r,arg]=(location.hash.replace(/^#\//,'')||'home').split('/');const R=ROUTES[r]||ROUTES.home;
+  document.getElementById('nav').replaceChildren(...Object.entries(ROUTES).filter(([k,v])=>v[2]!=='admin'||isAdmin()).flatMap(([k,v])=>[k==='users'?el('div',{class:'sep'}):null,el('a',{href:'#/'+k,class:k===(ROUTES[r]?r:'home')?'on':''},v[0])]));
+  V.replaceChildren(el('p',{class:'sub'},'Loading…'));
+  try{await R[1](arg)}catch(e){V.replaceChildren(el('p',{class:'sub'},'Could not load this page.'));fail(e)}}
+async function init(){
+  for(const st of [localStorage,sessionStorage]){const c=window.supabase.createClient(URL_,KEY,{auth:{storage:st}});const {data}=await c.auth.getSession();if(data.session){S.db=c;break}}
+  if(!S.db){location.replace('index.html');return}
+  const {data:p}=await S.db.rpc('current_profile');
+  if(!p||!p.is_active){await S.db.auth.signOut();location.replace('index.html');return}
+  S.p=p;await loadRef();paintMe();
+  document.getElementById('out').addEventListener('click',async()=>{await S.db.auth.signOut();location.replace('index.html')});
+  addEventListener('hashchange',route);route()}
+init().catch(fail);
+</script>
+</body>
+</html>
