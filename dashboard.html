@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>InventorySP</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -57,14 +57,59 @@ td input,td select{height:36px;font-size:14px;width:100%;min-width:90px}
 #toast{position:fixed;right:20px;bottom:20px;max-width:360px;padding:14px 18px;border-radius:12px;color:#fff;font-weight:600;font-size:15px;display:none;z-index:9}
 .lines{display:flex;flex-direction:column;gap:10px}
 .sec{padding:18px 16px 12px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.burger{display:none;width:44px;height:44px;border-radius:10px;border:1px solid #6FB9A3;background:transparent;color:#fff;font-size:22px;cursor:pointer;align-items:center;justify-content:center}
+#drawer{display:flex;flex-direction:column;gap:24px;flex:1}
+main>*{width:100%;max-width:1280px;margin-inline:auto}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:0 14px;min-height:44px;border:1.5px solid #B8C4BE;border-radius:10px;background:#fff;font-weight:700;font-size:15px;cursor:pointer;user-select:none}
+.chip input{width:18px;height:18px;min-width:0;accent-color:#046A4E}
+.chip:has(input:checked){border-color:#046A4E;background:#E6F4EE}
+@media(min-width:900px){aside{position:sticky;top:0;height:100vh;overflow-y:auto}}
+@media(min-width:1400px){main{padding:40px 48px}}
+@media(max-width:899px){
+aside{flex:0 0 100%;min-width:0;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;gap:0;position:sticky;top:0;z-index:5}
+aside.open{max-height:100vh;max-height:100dvh;overflow-y:auto}
+.burger{display:inline-flex}
+#drawer{display:none;padding:16px 0 calc(8px + env(safe-area-inset-bottom))}
+aside.open #drawer{display:flex}
+.tile{width:40px;height:40px;border-radius:10px}
+nav a{padding:14px 12px}
+main{flex:1 1 100%;padding:20px 16px calc(32px + env(safe-area-inset-bottom));gap:20px}
+}
+@media(max-width:640px){
+h1{font-size:22px}h2{font-size:17px}
+.head,.head .row{width:100%}
+.head .row>*{flex:1 1 100%}
+label.f{flex:1 1 100%}
+.row>.btn{flex:1 1 auto}
+.grid{grid-template-columns:repeat(2,1fr);gap:12px}
+.kpi{padding:16px}.kpi div:last-child{font-size:28px}
+.qa{padding:14px}
+.pad{padding:16px}
+.lines .row>select{flex:1 1 100%}.lines .row>input{flex:1 1 90px}
+.scroll{overflow:visible}
+table{min-width:0;display:block}thead{display:none}tbody{display:block}
+tr{display:block;padding:10px 16px;border-top:1px solid #E6ECE8}
+td{display:flex;justify-content:space-between;align-items:center;gap:12px;border:0;padding:6px 0;text-align:right;overflow-wrap:anywhere}
+td::before{content:attr(data-label);flex:0 0 38%;font-size:12px;font-weight:700;color:#4A5B54;text-transform:uppercase;letter-spacing:.5px;text-align:left}
+td[data-label='']::before,td:not([data-label])::before{display:none}
+td[data-label='']{justify-content:flex-end}
+td input,td select{flex:1;width:auto;min-width:0;max-width:62%}
+td input[type=checkbox]{flex:0 0 auto}
+td.empty{display:block;text-align:left;padding:8px 0}
+#toast{left:12px;right:12px;max-width:none;bottom:calc(12px + env(safe-area-inset-bottom))}
+}
+@media(max-width:360px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="wrap">
 <aside>
-<div class="brand"><div class="tile"><img src="Smart_Parker_Logo.jpg" alt="Smart Parker logo"></div>InventorySP</div>
-<nav id="nav" aria-label="Main"></nav>
-<div class="me"><b id="uname">Loading…</b><span id="urole"></span><button id="out" type="button">Sign out</button></div>
+<div class="top"><div class="brand"><div class="tile"><img src="Smart_Parker_Logo.jpg" alt="Smart Parker logo"></div>InventorySP</div><button id="burger" class="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="drawer">☰</button></div>
+<div id="drawer"><nav id="nav" aria-label="Main"></nav>
+<div class="me"><b id="uname">Loading…</b><span id="urole"></span><button id="out" type="button">Sign out</button></div></div>
 </aside>
 <main id="view"></main>
 </div>
@@ -73,7 +118,7 @@ td input,td select{height:36px;font-size:14px;width:100%;min-width:90px}
 const URL_='https://xstjznhcpungxhrjrvdq.supabase.co',KEY='sb_publishable_hkNdUICElgNZRd-hXHwgfw_WMgitNHU';
 const S={db:null,p:null,sites:[],items:[]};
 const V=document.getElementById('view');
-const el=(t,p,...k)=>{const e=document.createElement(t);for(const [a,v] of Object.entries(p||{})){if(a==='class')e.className=v;else if(a.startsWith('on'))e.addEventListener(a.slice(2),v);else if(a==='for')e.htmlFor=v;else if(v!==false&&v!=null)e[a]=v}for(const c of k.flat()){if(c==null||c===false)continue;e.append(c.nodeType?c:document.createTextNode(String(c)))}return e};
+const el=(t,p,...k)=>{const e=document.createElement(t);for(const [a,v] of Object.entries(p||{})){if(a==='class')e.className=v;else if(a.startsWith('on'))e.addEventListener(a.slice(2),v);else if(a==='for')e.htmlFor=v;else if(a.startsWith('data-'))e.setAttribute(a,v);else if(v!==false&&v!=null)e[a]=v}for(const c of k.flat()){if(c==null||c===false)continue;e.append(c.nodeType?c:document.createTextNode(String(c)))}return e};
 const fmt=d=>new Date(d).toLocaleString([],{dateStyle:'medium',timeStyle:'short'});
 const ok=r=>{if(r.error)throw r.error;return r.data};
 const isMgr=()=>['admin','manager'].includes(S.p.role),isAdmin=()=>S.p.role==='admin';
@@ -84,7 +129,7 @@ const siteOpts=(all)=>[...(all?[{v:'',t:'All sites'}]:[]),...S.sites.filter(s=>s
 const itemOpts=()=>S.items.filter(i=>i.is_active).map(i=>({v:i.id,t:i.sku+' – '+i.name}));
 const field=(label,input)=>el('label',{class:'f'},label,input);
 const head=(t,s,...a)=>el('div',{class:'head'},el('div',{},el('h1',{},t),el('p',{class:'sub'},s)),el('div',{class:'row'},a));
-const tbl=(h,rows,empty)=>el('div',{class:'scroll'},el('table',{},el('thead',{},el('tr',{},h.map(x=>el('th',{},x)))),el('tbody',{},rows.length?rows.map(r=>el('tr',{},r.map(c=>el('td',{},c)))):el('tr',{},el('td',{colSpan:h.length,class:'empty'},empty||'Nothing here yet.')))));
+const tbl=(h,rows,empty)=>el('div',{class:'scroll'},el('table',{},el('thead',{},el('tr',{},h.map(x=>el('th',{},x)))),el('tbody',{},rows.length?rows.map(r=>el('tr',{},r.map((c,i)=>el('td',{'data-label':h[i]},c)))):el('tr',{},el('td',{colSpan:h.length,class:'empty'},empty||'Nothing here yet.')))));
 const badge=(t,c)=>el('span',{class:'badge '+c},t);
 const TYPES={receive:'Received',issue:'Issued',transfer_out:'Transfer out',transfer_in:'Transfer in',count_adjust:'Count adjusted'};
 async function loadRef(){const [a,b]=await Promise.all([S.db.from('sites').select('*').order('name'),S.db.from('items').select('*').order('name')]);S.sites=ok(a);S.items=ok(b)}
@@ -94,15 +139,16 @@ function csv(name,head,rows){const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"'
 async function home(){
   const name=S.p.full_name||S.p.email.split('@')[0],h=new Date().getHours();
   const site=sel(siteOpts(true),S.p.site_id||'');
-  const k=['Total items','Low stock','Out of stock','Transfers pending'].map((t,i)=>el('div',{class:'card kpi'},el('div',{},t),el('div',{style:i==1?'color:#9A5300':i==2?'color:#B42318':''},'–')));
+  const k=['Total items','Low stock','Out of stock','Transfers pending','Devices out'].map((t,i)=>el('div',{class:'card kpi'},el('div',{},t),el('div',{style:i==1?'color:#9A5300':i==2?'color:#B42318':''},'–')));
   const na=el('div',{class:'pad'}),mv=el('div',{});
   V.replaceChildren(
     head((h<12?'Good morning, ':h<18?'Good afternoon, ':'Good evening, ')+name,'Here is what is happening across your sites today.',site),
-    el('section',{class:'grid'},[['Receive stock','Add items coming in','#/stock'],['Issue stock','Record items going out','#/stock'],['New transfer','Move stock between sites','#/transfers'],['Start a count','Scan and reconcile','#/counts']].map(a=>el('a',{href:a[2],class:'card qa'},el('b',{},a[0]),el('span',{},a[1])))),
+    el('section',{class:'grid'},[['Issue devices','Send handhelds out with marshals','#/devices'],['Receive stock','Add items coming in','#/stock'],['Issue stock','Record items going out','#/stock'],['New transfer','Move stock between sites','#/transfers'],['Start a count','Scan and reconcile','#/counts']].map(a=>el('a',{href:a[2],class:'card qa'},el('b',{},a[0]),el('span',{},a[1])))),
     el('section',{class:'grid'},k),
     el('div',{class:'cols'},el('section',{class:'card',style:'flex:2 1 520px;min-width:0'},el('div',{class:'sec'},el('h2',{},'Recent movements'),el('a',{href:'#/reports',style:'font-weight:700;color:#046A4E;font-size:14px'},'All reports')),mv),el('section',{class:'card',style:'flex:1 1 300px;min-width:0'},el('div',{class:'sec'},el('h2',{},'Needs attention')),na)));
   const load=async()=>{const s=site.value||null;
-    const [a,b,c]=await Promise.all([S.db.rpc('dashboard_summary',{p_site:s}),S.db.rpc('needs_attention',{p_site:s}),S.db.from('recent_movements').select('*').order('created_at',{ascending:false}).limit(8)]);
+    const [a,b,c,dv]=await Promise.all([S.db.rpc('dashboard_summary',{p_site:s}),S.db.rpc('needs_attention',{p_site:s}),S.db.from('recent_movements').select('*').order('created_at',{ascending:false}).limit(8),S.db.from('device_status').select('device_id',{count:'exact',head:true}).eq('is_out',true)]);
+    k[4].lastChild.textContent=dv.count??0;
     const r=ok(a)[0]||{};[r.total_items,r.low_stock,r.out_of_stock,r.transfers_pending].forEach((v,i)=>k[i].lastChild.textContent=v??0);
     const n=ok(b);na.replaceChildren(...(n.length?n.slice(0,6).map(i=>el('div',{class:'alert '+i.status},el('b',{},i.name),el('i',{},i.status==='out'?'Out of stock':'Low: '+i.quantity+' left'))):[el('div',{class:'empty'},'Nothing needs attention right now.')]));
     mv.replaceChildren(tbl(['Item','Type','Qty','Site','By','When'],ok(c).map(x=>[x.item_name,TYPES[x.type]||x.type,x.quantity,x.site_name,x.created_by_name||'',fmt(x.created_at)]),'No movements yet.'))};
@@ -148,6 +194,40 @@ async function transfers(){
   const rows=ok(await S.db.from('transfers').select('id,status,note,created_at,from_site:sites!transfers_from_site_id_fkey(name),to_site:sites!transfers_to_site_id_fkey(name),transfer_lines(quantity,items(name))').order('created_at',{ascending:false}).limit(30));
   const act=(t)=>t.status!=='pending'?'':el('div',{class:'row'},el('button',{class:'btn sm',onclick:async()=>{try{ok(await S.db.rpc('complete_transfer',{p_transfer_id:t.id}));toast('Transfer completed');transfers()}catch(e){fail(/stock_levels|check/.test(e.message||'')?{message:'Not enough stock at the sending site'}:e)}}},'Complete'),el('button',{class:'btn alt sm',onclick:async()=>{try{ok(await S.db.from('transfers').update({status:'cancelled'}).eq('id',t.id));transfers()}catch(e){fail(e)}}},'Cancel'));
   list.replaceChildren(tbl(['Created','From → To','Items','Status',''],rows.map(t=>[fmt(t.created_at),t.from_site.name+' → '+t.to_site.name,t.transfer_lines.map(l=>l.quantity+' × '+l.items.name).join(', '),badge(t.status[0].toUpperCase()+t.status.slice(1),t.status==='completed'?'b-ok':t.status==='pending'?'b-low':'b-gray'),act(t)]),'No transfers yet.'))}
+
+/* ---------- DEVICES ---------- */
+async function devices(){
+  const [a,b,c]=await Promise.all([S.db.from('device_status').select('*').order('tag'),
+    S.db.from('device_assignments').select('id,issued_at,returned_at,issued_by_name,received_by_name,note,return_note,devices(tag),marshals(full_name)').order('issued_at',{ascending:false}).limit(60),
+    S.db.from('marshals').select('*').order('full_name')]);
+  const D=ok(a),H=ok(b),M=ok(c),out=D.filter(x=>x.is_out),free=D.filter(x=>!x.is_out&&x.status==='active'),rep=D.filter(x=>x.status!=='active');
+  const today=new Date().toDateString(),late=x=>new Date(x.issued_at).toDateString()!==today;
+  const kp=(t,v,c)=>el('div',{class:'card kpi'},el('div',{},t),el('div',{style:c?'color:'+c:''},v));
+  const act=M.filter(m=>m.is_active),mar=sel(act.map(m=>({v:m.id,t:m.full_name+(m.badge_no?' ('+m.badge_no+')':'')})),act[0]&&act[0].id),note=el('input',{placeholder:'Optional, e.g. spare battery given'});
+  const chips=free.map(x=>{const cb=el('input',{type:'checkbox',value:x.device_id});return el('label',{class:'chip'},cb,x.tag)});
+  const issue=el('button',{class:'btn',onclick:async()=>{try{const ids=chips.map(c=>c.firstChild).filter(c=>c.checked).map(c=>c.value);if(!mar.value)throw new Error('Add a marshal first (see Marshals below)');if(!ids.length)throw new Error('Tick at least one device');issue.disabled=true;
+    const res=await Promise.allSettled(ids.map(id=>S.db.rpc('issue_device',{p_device_id:id,p_marshal_id:mar.value,p_note:note.value.trim()||null}).then(ok)));const bad=res.filter(r=>r.status==='rejected');
+    if(bad.length)toast(bad.length+' failed: '+bad[0].reason.message,true);else toast(ids.length+' device'+(ids.length>1?'s':'')+' issued');devices()}catch(e){fail(e);issue.disabled=false}}},'Issue selected');
+  const boxes=[],doRet=async(rows,good,msg)=>{try{const r=await Promise.allSettled(rows.map(x=>S.db.rpc('return_device',{p_assignment_id:x.assignment_id,p_ok:good,p_note:msg||null}).then(ok)));const bad=r.filter(z=>z.status==='rejected');bad.length?toast(bad.length+' failed: '+bad[0].reason.message,true):toast('Returned');devices()}catch(e){fail(e)}};
+  const outRows=out.map(x=>{const cb=el('input',{type:'checkbox'});boxes.push([cb,x]);return[cb,x.tag,x.marshal_name,fmt(x.issued_at),x.issued_by_name||'',late(x)?badge('NOT RETURNED since '+new Date(x.issued_at).toLocaleDateString([],{dateStyle:'medium'}),'b-out'):badge('Out today','b-low'),
+    el('div',{class:'row'},el('button',{class:'btn sm',onclick:()=>doRet([x],true)},'Return'),el('button',{class:'btn alt sm',onclick:()=>{const m=prompt('What is wrong with '+x.tag+'?');if(m)doRet([x],false,m)}},'Damaged'))]});
+  const retSel=el('button',{class:'btn alt sm',onclick:()=>{const r=boxes.filter(b=>b[0].checked).map(b=>b[1]);if(!r.length)return toast('Tick the devices that came back',true);doRet(r,true)}},'Return ticked'),
+    allBtn=el('button',{class:'btn alt sm',onclick:()=>{const on=boxes.some(b=>!b[0].checked);boxes.forEach(b=>b[0].checked=on)}},'Tick / untick all');
+  const nm=el('input'),bd=el('input'),ph=el('input',{type:'tel'});
+  const addM=el('button',{class:'btn',onclick:async()=>{try{if(!nm.value.trim())throw new Error('Enter the marshal\'s name');ok(await S.db.from('marshals').insert({full_name:nm.value.trim(),badge_no:bd.value.trim()||null,phone:ph.value.trim()||null}));toast('Marshal added');devices()}catch(e){fail(e)}}},'Add marshal');
+  const tg=el('input',{placeholder:'e.g. SP-37'}),ip=el('input',{placeholder:'10.255.225.x'});
+  const addD=el('button',{class:'btn',onclick:async()=>{try{if(!tg.value.trim())throw new Error('Enter the device tag');ok(await S.db.from('devices').insert({tag:tg.value.trim().toUpperCase(),ip_address:ip.value.trim()||null}));toast('Device added');devices()}catch(e){fail(e)}}},'Add device');
+  const stBadge=x=>x.status==='active'?badge('In service','b-ok'):badge(x.status==='repair'?'In repair':'Lost','b-out');
+  V.replaceChildren(head('Devices','Issue handhelds to marshals in the morning and check them back in each afternoon.'),
+    el('section',{class:'grid'},kp('Total devices',D.length),kp('In the office',free.length,'#04503B'),kp('Out with marshals',out.length,'#9A5300'),kp('In repair / lost',rep.length,rep.length?'#B42318':'')),
+    el('div',{class:'card pad'},el('h2',{},'Issue devices'),el('div',{class:'row'},field('Marshal',mar),field('Note',note)),el('div',{},el('b',{},'Available devices ('+free.length+')'),el('div',{class:'chips',style:'margin-top:10px'},chips.length?chips:[el('p',{class:'sub'},'No devices available.')])),el('div',{class:'row'},issue)),
+    el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Out with marshals ('+out.length+')'),el('div',{class:'row'},allBtn,retSel)),tbl(['','Device','Marshal','Issued','By','Status',''],outRows,'Every device is back in the office.')),
+    el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'All devices')),tbl(['Device','IP address','Status','Where',''],D.map(x=>[x.tag,x.ip_address||'',stBadge(x),x.is_out?x.marshal_name:'Office',isMgr()&&!x.is_out?el('button',{class:'btn alt sm',onclick:async()=>{try{ok(await S.db.from('devices').update({status:x.status==='active'?'repair':'active'}).eq('id',x.device_id));devices()}catch(e){fail(e)}}},x.status==='active'?'Mark in repair':'Back in service'):'']),'No devices yet.'),
+      isMgr()?el('div',{class:'pad'},el('h2',{},'Add a device'),el('div',{class:'row'},field('Tag',tg),field('IP address',ip)),el('div',{class:'row'},addD)):null),
+    el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Marshals'),),tbl(['Name','Badge no.','Phone','Status',''],M.map(m=>[m.full_name,m.badge_no||'',m.phone||'',badge(m.is_active?'Active':'Inactive',m.is_active?'b-ok':'b-gray'),isMgr()?el('button',{class:'btn alt sm',onclick:async()=>{try{ok(await S.db.from('marshals').update({is_active:!m.is_active}).eq('id',m.id));devices()}catch(e){fail(e)}}},m.is_active?'Deactivate':'Activate'):'']),'No marshals yet. Add the first one below.'),
+      el('div',{class:'pad'},el('h2',{},'Add a marshal'),el('div',{class:'row'},field('Full name',nm),field('Badge no.',bd),field('Phone',ph)),el('div',{class:'row'},addM))),
+    el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Recent history'),el('button',{class:'btn alt sm',onclick:()=>csv('device-log.csv',['Device','Marshal','Out','In','Issued by','Received by','Note on issue','Note on return'],H.map(r=>[r.devices.tag,r.marshals.full_name,r.issued_at,r.returned_at||'',r.issued_by_name,r.received_by_name,r.note,r.return_note]))},'Download CSV')),
+      tbl(['Device','Marshal','Out','In','Issued by','Received by'],H.map(r=>[r.devices.tag,r.marshals.full_name,fmt(r.issued_at),r.returned_at?fmt(r.returned_at):badge('Still out','b-low'),r.issued_by_name||'',r.received_by_name||'']),'No history yet.')))}
 
 /* ---------- STOCK COUNTS ---------- */
 async function counts(id){
@@ -209,11 +289,12 @@ async function settings(){
     el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Sites')),sl,isMgr()?el('div',{class:'pad'},el('div',{class:'row'},field('Code',sc),field('Name',sn)),el('div',{class:'row'},el('button',{class:'btn',onclick:async()=>{try{if(!sc.value.trim()||!sn.value.trim())throw new Error('Enter a code and a name');ok(await S.db.from('sites').insert({code:sc.value.trim().toUpperCase(),name:sn.value.trim()}));sc.value=sn.value='';await loadRef();drawSites();toast('Site added')}catch(e){fail(e)}}},'Add site'))):null));drawSites()}
 
 /* ---------- SHELL ---------- */
-const ROUTES={home:['Home',home],inventory:['Inventory',inventory],stock:['Stock in / out',stock],transfers:['Transfers',transfers],counts:['Stock counts',counts],reports:['Reports',reports],users:['Users',users,'admin'],settings:['Settings',settings]};
+const ROUTES={home:['Home',home],inventory:['Inventory',inventory],stock:['Stock in / out',stock],transfers:['Transfers',transfers],devices:['Devices',devices],counts:['Stock counts',counts],reports:['Reports',reports],users:['Users',users,'admin'],settings:['Settings',settings]};
 function paintMe(){const n=S.p.full_name||S.p.email.split('@')[0];document.getElementById('uname').textContent=n;document.getElementById('urole').textContent=S.p.role[0].toUpperCase()+S.p.role.slice(1)+(S.sites.find(s=>s.id===S.p.site_id)?' · '+S.sites.find(s=>s.id===S.p.site_id).name:'')}
 async function route(){
   const [r,arg]=(location.hash.replace(/^#\//,'')||'home').split('/');const R=ROUTES[r]||ROUTES.home;
   document.getElementById('nav').replaceChildren(...Object.entries(ROUTES).filter(([k,v])=>v[2]!=='admin'||isAdmin()).flatMap(([k,v])=>[k==='users'?el('div',{class:'sep'}):null,el('a',{href:'#/'+k,class:k===(ROUTES[r]?r:'home')?'on':''},v[0])]).filter(Boolean));
+  document.querySelector('aside').classList.remove('open');document.getElementById('burger').setAttribute('aria-expanded','false');scrollTo(0,0);
   V.replaceChildren(el('p',{class:'sub'},'Loading…'));
   try{await R[1](arg)}catch(e){V.replaceChildren(el('p',{class:'sub'},'Could not load this page.'));fail(e)}}
 async function init(){
@@ -222,6 +303,7 @@ async function init(){
   const {data:p}=await S.db.rpc('current_profile');
   if(!p||!p.is_active){await S.db.auth.signOut();location.replace('index.html');return}
   S.p=p;await loadRef();paintMe();
+  document.getElementById('burger').addEventListener('click',()=>{const a=document.querySelector('aside'),o=a.classList.toggle('open');document.getElementById('burger').setAttribute('aria-expanded',o)});
   document.getElementById('out').addEventListener('click',async()=>{await S.db.auth.signOut();location.replace('index.html')});
   addEventListener('hashchange',route);route()}
 init().catch(fail);

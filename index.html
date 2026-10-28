@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>InventorySP – Login</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:'Manrope',system-ui,sans-serif;background:#F5F8F6;color:#12201B}
-.wrap{min-height:100vh;display:flex;flex-wrap:wrap}
+.wrap{min-height:100vh;min-height:100dvh;display:flex;flex-wrap:wrap}
 .brand{flex:1 1 420px;background:#046A4E;color:#F5F8F6;padding:56px;display:flex;flex-direction:column;justify-content:space-between;gap:48px}
 .logo{display:flex;align-items:center;gap:16px}
 .tile{width:72px;height:72px;border-radius:18px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -36,6 +36,19 @@ button:disabled{opacity:.7;cursor:wait}
 .msg.err{display:block;background:#FDECEA;color:#8A1C14;border:1px solid #F3B7B2}
 .msg.ok{display:block;background:#E6F4EE;color:#04503B;border:1px solid #A8D8C5}
 .foot{text-align:center;font-size:14px;color:#4A5B54;margin:0}
+.brand h1{font-size:clamp(28px,4vw,44px)}
+@media(min-width:1400px){.brand{padding:72px}.brand h1{font-size:52px}}
+@media(max-width:860px){
+.brand{flex:0 0 100%;padding:calc(20px + env(safe-area-inset-top)) 20px 24px;gap:16px}
+.tile{width:56px;height:56px;border-radius:14px}
+.brand h1{margin:0 0 8px;font-size:26px}
+.brand p{font-size:15px;line-height:1.5}
+.brand>p:last-child{display:none}
+.panel{flex:1 1 100%;align-items:flex-start;padding:28px 20px calc(32px + env(safe-area-inset-bottom))}
+form{gap:20px}h2{font-size:26px}
+}
+@media(max-width:380px){.brand p{display:none}.brand{padding-bottom:16px}}
+@media(max-height:520px) and (orientation:landscape){.brand{display:none}.panel{align-items:center}}
 </style>
 </head>
 <body>
