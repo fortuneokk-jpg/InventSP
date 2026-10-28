@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/jpeg" href="Smart_Parker_Logo.jpg">
+<link rel="apple-touch-icon" href="Smart_Parker_Logo.jpg">
 <title>InventorySP</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -203,11 +205,12 @@ async function devices(){
   const D=ok(a),H=ok(b),M=ok(c),out=D.filter(x=>x.is_out),free=D.filter(x=>!x.is_out&&x.status==='active'),rep=D.filter(x=>x.status!=='active');
   const today=new Date().toDateString(),late=x=>new Date(x.issued_at).toDateString()!==today;
   const kp=(t,v,c)=>el('div',{class:'card kpi'},el('div',{},t),el('div',{style:c?'color:'+c:''},v));
-  const act=M.filter(m=>m.is_active),mar=sel(act.map(m=>({v:m.id,t:m.full_name+(m.badge_no?' ('+m.badge_no+')':'')})),act[0]&&act[0].id),note=el('input',{placeholder:'Optional, e.g. spare battery given'});
-  const chips=free.map(x=>{const cb=el('input',{type:'checkbox',value:x.device_id});return el('label',{class:'chip'},cb,x.tag)});
-  const issue=el('button',{class:'btn',onclick:async()=>{try{const ids=chips.map(c=>c.firstChild).filter(c=>c.checked).map(c=>c.value);if(!mar.value)throw new Error('Add a marshal first (see Marshals below)');if(!ids.length)throw new Error('Tick at least one device');issue.disabled=true;
-    const res=await Promise.allSettled(ids.map(id=>S.db.rpc('issue_device',{p_device_id:id,p_marshal_id:mar.value,p_note:note.value.trim()||null}).then(ok)));const bad=res.filter(r=>r.status==='rejected');
-    if(bad.length)toast(bad.length+' failed: '+bad[0].reason.message,true);else toast(ids.length+' device'+(ids.length>1?'s':'')+' issued');devices()}catch(e){fail(e);issue.disabled=false}}},'Issue selected');
+  const act=M.filter(m=>m.is_active),mar=sel(act.map(m=>({v:m.id,t:m.full_name+(m.badge_no?' ('+m.badge_no+')':'')})),(act.find(m=>m.id===S.lastMar)||act[0]||{}).id),note=el('input',{placeholder:'Optional, e.g. spare battery given'});
+  const chips=free.map(x=>{const rb=el('input',{type:'radio',name:'dev',value:x.device_id}),c=el('label',{class:'chip'},rb,x.tag);c._s=(x.tag+' '+(x.ip_address||'')).toLowerCase();c._t=x.tag;return c});
+  const none=el('p',{class:'sub',style:'display:none'},'No available device matches your search.'),dq=el('input',{type:'search',placeholder:'Search device tag, e.g. SP-05',autocomplete:'off',style:'max-width:320px'});
+  dq.addEventListener('input',()=>{const q=dq.value.trim().toLowerCase();let n=0,last;chips.forEach(c=>{const m=!q||c._s.includes(q);c.style.display=m?'':'none';if(m){n++;last=c}});none.style.display=n?'none':'';if(q&&n===1)last.firstChild.checked=true});
+  const issue=el('button',{class:'btn',onclick:async()=>{try{const pick=chips.find(c=>c.firstChild.checked);if(!mar.value)throw new Error('Choose a marshal first');if(!pick)throw new Error('Select a device to issue');issue.disabled=true;
+    ok(await S.db.rpc('issue_device',{p_device_id:pick.firstChild.value,p_marshal_id:mar.value,p_note:note.value.trim()||null}));S.lastMar=mar.value;toast(pick._t+' issued to '+mar.options[mar.selectedIndex].text.replace(/ \(.*\)$/,''));devices()}catch(e){fail(e);issue.disabled=false}}},'Issue device');
   const boxes=[],doRet=async(rows,good,msg)=>{try{const r=await Promise.allSettled(rows.map(x=>S.db.rpc('return_device',{p_assignment_id:x.assignment_id,p_ok:good,p_note:msg||null}).then(ok)));const bad=r.filter(z=>z.status==='rejected');bad.length?toast(bad.length+' failed: '+bad[0].reason.message,true):toast('Returned');devices()}catch(e){fail(e)}};
   const outRows=out.map(x=>{const cb=el('input',{type:'checkbox'});boxes.push([cb,x]);return[cb,x.tag,x.marshal_name,fmt(x.issued_at),x.issued_by_name||'',late(x)?badge('NOT RETURNED since '+new Date(x.issued_at).toLocaleDateString([],{dateStyle:'medium'}),'b-out'):badge('Out today','b-low'),
     el('div',{class:'row'},el('button',{class:'btn sm',onclick:()=>doRet([x],true)},'Return'),el('button',{class:'btn alt sm',onclick:()=>{const m=prompt('What is wrong with '+x.tag+'?');if(m)doRet([x],false,m)}},'Damaged'))]});
@@ -220,7 +223,7 @@ async function devices(){
   const stBadge=x=>x.status==='active'?badge('In service','b-ok'):badge(x.status==='repair'?'In repair':'Lost','b-out');
   V.replaceChildren(head('Devices','Issue handhelds to marshals in the morning and check them back in each afternoon.'),
     el('section',{class:'grid'},kp('Total devices',D.length),kp('In the office',free.length,'#04503B'),kp('Out with marshals',out.length,'#9A5300'),kp('In repair / lost',rep.length,rep.length?'#B42318':'')),
-    el('div',{class:'card pad'},el('h2',{},'Issue devices'),el('div',{class:'row'},field('Marshal',mar),field('Note',note)),el('div',{},el('b',{},'Available devices ('+free.length+')'),el('div',{class:'chips',style:'margin-top:10px'},chips.length?chips:[el('p',{class:'sub'},'No devices available.')])),el('div',{class:'row'},issue)),
+    el('div',{class:'card pad'},el('h2',{},'Issue a device'),el('div',{class:'row'},field('Marshal',mar),field('Note',note)),el('div',{style:'display:flex;flex-direction:column;gap:10px'},el('b',{},'Available devices ('+free.length+')'),dq,el('div',{class:'chips'},chips.length?chips:[el('p',{class:'sub'},'No devices available.')]),none),el('div',{class:'row'},issue)),
     el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Out with marshals ('+out.length+')'),el('div',{class:'row'},allBtn,retSel)),tbl(['','Device','Marshal','Issued','By','Status',''],outRows,'Every device is back in the office.')),
     el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'All devices')),tbl(['Device','IP address','Status','Where',''],D.map(x=>[x.tag,x.ip_address||'',stBadge(x),x.is_out?x.marshal_name:'Office',isMgr()&&!x.is_out?el('button',{class:'btn alt sm',onclick:async()=>{try{ok(await S.db.from('devices').update({status:x.status==='active'?'repair':'active'}).eq('id',x.device_id));devices()}catch(e){fail(e)}}},x.status==='active'?'Mark in repair':'Back in service'):'']),'No devices yet.'),
       isMgr()?el('div',{class:'pad'},el('h2',{},'Add a device'),el('div',{class:'row'},field('Tag',tg),field('IP address',ip)),el('div',{class:'row'},addD)):null),
