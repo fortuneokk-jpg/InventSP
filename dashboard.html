@@ -132,6 +132,29 @@ a.c-ip{color:#046A4E;font-weight:600}
 .more .menu{position:absolute;right:0;top:40px;z-index:6;background:#fff;border:1px solid #DCE5E0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.14);padding:6px;display:flex;flex-direction:column;gap:6px;min-width:170px}
 .btn.dg{color:#B42318;border-color:#B42318}.btn.dg:hover{background:#FDECEA}
 @media(max-width:640px){.crow{flex-wrap:wrap;padding:8px 14px}.c-main{flex:1 1 auto}.c-act{order:2}.c-meta{order:3;flex:1 1 100%}.c-where{min-width:0}.cq{max-width:none;flex:1 1 100%}}
+/* tabs, tiles, dense stats */
+.strip{display:flex;flex-wrap:wrap;gap:8px}
+.stat{flex:1 1 130px;display:flex;align-items:baseline;gap:8px;padding:8px 14px;background:#fff;border:1px solid #DCE5E0;border-radius:12px}
+.stat b{font-size:22px;font-weight:800}.stat span{font-size:13px;color:#4A5B54;font-weight:600}
+.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid #DCE5E0;margin-bottom:-8px}
+.tab{padding:10px 14px;border:0;border-bottom:3px solid transparent;background:none;font:inherit;font-weight:700;color:#4A5B54;cursor:pointer;white-space:nowrap}
+.tab b{background:#EDF0EE;border-radius:999px;padding:1px 8px;font-size:12px;margin-left:4px}
+.tab.on{color:#046A4E;border-bottom-color:#046A4E}.tab.on b{background:#E6F4EE}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;padding:0 16px 12px}
+.tiles .empty{grid-column:1/-1;border:0}
+.tl{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:6px 9px;border:1.5px solid;border-radius:10px;font:inherit;text-align:left;cursor:pointer;min-width:0}
+.tl b{font-size:14px;font-weight:800}.tl span{font-size:11.5px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tl.off{background:#E6F4EE;border-color:#9ADBC4;color:#04503B}
+.tl.out{background:#FFF4E0;border-color:#F0C77A;color:#9A5300}
+.tl.bad{background:#FDECEA;border-color:#F0A9A2;color:#B42318}
+.tl.sel{outline:3px solid #046A4E;outline-offset:1px}
+.det{padding:0 16px 12px}.det:empty{display:none}
+.detin{border:1.5px solid #046A4E;border-radius:12px;background:#F7FAF8;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.dettop{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.dettop .btn{margin-left:auto}
+.two{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(400px,100%),1fr))}
+.two .c-main{flex:1 1 130px}.two .c-meta{flex:0 1 auto;max-width:55%}
+.crow input[type=checkbox]{width:20px;height:20px;min-width:0;padding:0;accent-color:#046A4E;flex:none}
+@media(max-width:640px){.two .c-meta{flex:1 1 100%;max-width:none}.tiles{grid-template-columns:repeat(auto-fill,minmax(84px,1fr))}.stat{flex:1 1 44%}}
 </style>
 </head>
 <body>
@@ -246,10 +269,6 @@ async function devices(){
   const issue=el('button',{class:'btn',onclick:async()=>{try{const pick=chips.find(c=>c.firstChild.checked);if(!mar.value)throw new Error('Choose a marshal first');if(!pick)throw new Error('Select a device to issue');issue.disabled=true;
     ok(await S.db.rpc('issue_device',{p_device_id:pick.firstChild.value,p_marshal_id:mar.value,p_note:note.value.trim()||null}));S.lastMar=mar.value;toast(pick._t+' issued to '+mar.options[mar.selectedIndex].text.replace(/ \(.*\)$/,''));devices()}catch(e){fail(e);issue.disabled=false}}},'Issue device');
   const boxes=[],doRet=async(rows,good,msg)=>{try{const r=await Promise.allSettled(rows.map(x=>S.db.rpc('return_device',{p_assignment_id:x.assignment_id,p_ok:good,p_note:msg||null}).then(ok)));const bad=r.filter(z=>z.status==='rejected');bad.length?toast(bad.length+' failed: '+bad[0].reason.message,true):toast('Returned');devices()}catch(e){fail(e)}};
-  const outRows=out.map(x=>{const cb=el('input',{type:'checkbox'});boxes.push([cb,x]);return[cb,x.tag,x.marshal_name,fmt(x.issued_at),x.issued_by_name||'',late(x)?badge('NOT RETURNED since '+new Date(x.issued_at).toLocaleDateString([],{dateStyle:'medium'}),'b-out'):badge('Out today','b-low'),
-    el('div',{class:'row'},el('button',{class:'btn sm',onclick:()=>doRet([x],true)},'Return'),el('button',{class:'btn alt sm',onclick:()=>{const m=prompt('What is wrong with '+x.tag+'?');if(m)doRet([x],false,m)}},'Damaged'))]});
-  const retSel=el('button',{class:'btn alt sm',onclick:()=>{const r=boxes.filter(b=>b[0].checked).map(b=>b[1]);if(!r.length)return toast('Tick the devices that came back',true);doRet(r,true)}},'Return ticked'),
-    allBtn=el('button',{class:'btn alt sm',onclick:()=>{const on=boxes.some(b=>!b[0].checked);boxes.forEach(b=>b[0].checked=on)}},'Tick / untick all');
   const nm=el('input'),bd=el('input'),ph=el('input',{type:'tel'});
   const addM=el('button',{class:'btn',onclick:async()=>{try{if(!nm.value.trim())throw new Error('Enter the marshal\'s name');ok(await S.db.from('marshals').insert({full_name:nm.value.trim(),badge_no:bd.value.trim()||null,phone:ph.value.trim()||null}));toast('Marshal added');devices()}catch(e){fail(e)}}},'Add marshal');
   const tg=el('input',{placeholder:'e.g. SP-37'}),ip=el('input',{placeholder:'10.255.225.x'});
@@ -270,23 +289,24 @@ async function devices(){
   /* ---- compact, searchable lists ---- */
   const ui=(S.ui=S.ui||{});
   const clist=(key,o)=>{
-    const st=ui[key]=ui[key]||{q:'',f:'all',all:false};
+    const st=ui[key]=ui[key]||{q:'',f:'all',all:false},pg=o.page||999;
     const inp=el('input',{type:'search',placeholder:o.ph,autocomplete:'off',class:'cq',value:st.q});
-    const fch=el('div',{class:'fchips'}),list=el('div',{class:'clist'}),cnt=el('span',{class:'sub'}),more=el('button',{class:'btn alt sm',type:'button'});
+    const fch=el('div',{class:'fchips'}),list=el('div',{class:'clist '+(o.cls||'')}),cnt=el('span',{class:'sub'}),more=el('button',{class:'btn alt sm',type:'button'});
     const paint=()=>{
       const q=st.q.trim().toLowerCase();
       fch.replaceChildren(...o.filters.map(([k,l,fn])=>el('button',{type:'button',class:'fc'+(st.f===k?' on':''),onclick:()=>{st.f=k;paint()}},l+' ',el('b',{},o.items.filter(fn).length))));
       const fn=o.filters.find(f=>f[0]===st.f)[2],r=o.items.filter(x=>fn(x)&&(!q||o.text(x).includes(q)));
-      const narrowed=!!q||st.f!=='all',shown=(st.all||narrowed)?r:r.slice(0,o.page);
+      const narrowed=!!q||st.f!=='all',shown=(st.all||narrowed)?r:r.slice(0,pg);
       list.replaceChildren(...(shown.length?shown.map(o.row):[el('p',{class:'empty'},o.items.length?'Nothing matches your search.':o.empty)]));
       cnt.textContent='Showing '+shown.length+' of '+o.items.length;
-      more.style.display=(!narrowed&&r.length>o.page)?'':'none';
+      more.style.display=(!narrowed&&r.length>pg)?'':'none';
       more.textContent=st.all?'Show fewer':'Show all '+r.length;
     };
     inp.addEventListener('input',()=>{st.q=inp.value;paint()});
     more.addEventListener('click',()=>{st.all=!st.all;paint()});
     paint();
-    return el('div',{},el('div',{class:'ctools'},inp,fch),list,el('div',{class:'cfoot'},cnt,more));
+    const w=el('div',{},el('div',{class:'ctools'},inp,fch),o.mid||null,list,el('div',{class:'cfoot'},cnt,more));
+    w.repaint=paint;return w;
   };
   if(!window._mm){window._mm=1;document.addEventListener('click',e=>document.querySelectorAll('details.more[open]').forEach(d=>{if(!d.contains(e.target))d.open=false}))}
   const menu=items=>{const b=items.filter(Boolean);return b.length?el('details',{class:'more'},el('summary',{title:'More actions'},'⋯'),el('div',{class:'menu'},b)):null};
@@ -314,20 +334,47 @@ async function devices(){
       isMgr()?menu([btn(m.is_active?'Deactivate':'Activate',async()=>{try{ok(await S.db.from('marshals').update({is_active:!m.is_active}).eq('id',m.id));devices()}catch(e){fail(e)}}),dbtn('Delete',()=>delMar(m))]):null))};
   const [addDT,addDP]=addPanel('Add device','Add a device',[field('Tag',tg),field('IP address',ip)],el('div',{class:'row'},addD));
   const [addMT,addMP]=addPanel('Add marshal','Add a marshal',[field('Full name',nm),field('PI code',bd),field('Phone',ph)],el('div',{class:'row'},addM));
+  const sfmt=d=>new Date(d).toLocaleString([],{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  const shortN=n=>{const p=(n||'').trim().split(/\s+/);return p.length>1?p[0]+' '+p[p.length-1][0]+'.':n};
+  const det=el('div',{class:'det'});
+  const clearSel=()=>document.querySelectorAll('.tl.sel').forEach(n=>n.classList.remove('sel'));
+  const showDet=x=>det.replaceChildren(el('div',{class:'detin'},
+    el('div',{class:'dettop'},el('b',{class:'c-tag'},x.tag),dBadge(x),el('span',{class:'c-ip'},x.ip_address||'no IP'),el('button',{class:'btn alt sm',type:'button',onclick:()=>{ui.devSel=null;det.replaceChildren();clearSel()}},'Close')),
+    el('p',{class:'sub',style:'margin:0'},(x.is_out?'With '+x.marshal_name+' since '+sfmt(x.issued_at)+(x.issued_by_name?' (issued by '+x.issued_by_name+')':''):'In the office'+(x.status!=='active'?' · '+(x.status==='repair'?'in repair':'lost'):''))+(x.note?' · '+x.note:'')),
+    isMgr()?el('div',{class:'row'},btn('Edit',()=>editDev(x)),!x.is_out?btn(x.status==='active'?'Mark in repair':'Back in service',toggleRepair(x)):null,!x.is_out?dbtn('Delete',()=>delDev(x)):null):null));
+  const tileRow=x=>{const k=x.is_out?'out':x.status==='active'?'off':'bad';
+    const b=el('button',{type:'button',class:'tl '+k+(ui.devSel===x.device_id?' sel':''),title:x.tag+(x.is_out?' · '+x.marshal_name:''),onclick:()=>{ui.devSel=x.device_id;clearSel();b.classList.add('sel');showDet(x)}},el('b',{},x.tag),el('span',{},x.is_out?shortN(x.marshal_name):x.status==='active'?'Office':x.status==='repair'?'Repair':'Lost'));return b};
+  {const s0=Ds.find(x=>x.device_id===ui.devSel);if(s0)showDet(s0)}
   const devCard=el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'All devices ('+D.length+')'),isMgr()?addDT:null),isMgr()?addDP:null,
-    clist('dev',{items:Ds,page:10,ph:'Search tag, IP or marshal…',empty:'No devices yet.',text:x=>(x.tag+' '+(x.ip_address||'')+' '+(x.marshal_name||'')+' '+(x.note||'')).toLowerCase(),
-      filters:[['all','All',()=>true],['office','In office',x=>!x.is_out&&x.status==='active'],['out','Out',x=>x.is_out],['rep','Repair / lost',x=>x.status!=='active']],row:devRow}));
+    clist('dev',{items:Ds,cls:'tiles',mid:det,ph:'Search tag, IP or marshal…',empty:'No devices yet.',text:x=>(x.tag+' '+(x.ip_address||'')+' '+(x.marshal_name||'')+' '+(x.note||'')).toLowerCase(),
+      filters:[['all','All',()=>true],['office','In office',x=>!x.is_out&&x.status==='active'],['out','Out',x=>x.is_out],['rep','Repair / lost',x=>x.status!=='active']],row:tileRow}));
   const marCard=el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Marshals ('+M.length+')'),el('div',{class:'row'},bulk,isMgr()?addMT:null)),isMgr()?addMP:null,
-    clist('mar',{items:M,page:10,ph:'Search name, PI code, phone or device…',empty:'No marshals yet.',text:m=>(m.full_name+' '+(m.badge_no||'')+' '+(m.phone||'')+' '+(byM[m.full_name]||[]).join(' ')).toLowerCase(),
+    clist('mar',{items:M,page:12,cls:'two',ph:'Search name, PI code, phone or device…',empty:'No marshals yet.',text:m=>(m.full_name+' '+(m.badge_no||'')+' '+(m.phone||'')+' '+(byM[m.full_name]||[]).join(' ')).toLowerCase(),
       filters:[['all','All',()=>true],['act','Active',m=>m.is_active],['has','Has a device',m=>(byM[m.full_name]||[]).length>0],['off','Inactive',m=>!m.is_active]],row:marRow}));
+  const chk=new Set();
+  const outWrap=clist('out',{items:out,page:15,ph:'Search tag or marshal…',empty:'Every device is back in the office.',text:x=>(x.tag+' '+x.marshal_name+' '+(x.issued_by_name||'')).toLowerCase(),
+    filters:[['all','All',()=>true],['late','Not returned',late],['today','Out today',x=>!late(x)]],
+    row:x=>{const cb=el('input',{type:'checkbox',checked:chk.has(x.assignment_id),onchange:()=>cb.checked?chk.add(x.assignment_id):chk.delete(x.assignment_id)});
+      return el('div',{class:'crow'},el('div',{class:'c-main'},cb,el('b',{class:'c-tag'},x.tag),late(x)?badge('Not returned','b-out'):badge('Out today','b-low')),
+        el('div',{class:'c-meta'},el('span',{class:'c-where'},x.marshal_name),el('span',{class:'c-ip'},sfmt(x.issued_at)+(x.issued_by_name?' · by '+x.issued_by_name:''))),
+        el('div',{class:'c-act'},el('button',{class:'btn sm',type:'button',onclick:()=>doRet([x],true)},'Return'),el('button',{class:'btn alt sm',type:'button',onclick:()=>{const m=prompt('What is wrong with '+x.tag+'?');if(m)doRet([x],false,m)}},'Damaged')))}});
+  const allBtn=el('button',{class:'btn alt sm',type:'button',onclick:()=>{const on=out.some(x=>!chk.has(x.assignment_id));out.forEach(x=>on?chk.add(x.assignment_id):chk.delete(x.assignment_id));outWrap.repaint()}},'Tick / untick all');
+  const retSel=el('button',{class:'btn sm',type:'button',onclick:()=>{const r=out.filter(x=>chk.has(x.assignment_id));if(!r.length)return toast('Tick the devices that came back',true);doRet(r,true)}},'Return ticked');
+  const outCard=el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Out with marshals ('+out.length+')'),out.length?el('div',{class:'row'},allBtn,retSel):null),outWrap);
+  const hisWrap=clist('his',{items:H,page:12,ph:'Search device, marshal or staff…',empty:'No history yet.',text:r=>(r.devices.tag+' '+r.marshals.full_name+' '+(r.issued_by_name||'')+' '+(r.received_by_name||'')).toLowerCase(),
+    filters:[['all','All',()=>true],['still','Still out',r=>!r.returned_at&&!r.voided_at],['ret','Returned',r=>!!r.returned_at&&!r.voided_at],['void','Voided',r=>!!r.voided_at]],
+    row:r=>el('div',{class:'crow'},el('div',{class:'c-main'},el('b',{class:'c-tag'},r.devices.tag),r.voided_at?badge('Voided','b-gray'):r.returned_at?badge('Returned','b-ok'):badge('Still out','b-low')),
+      el('div',{class:'c-meta'},el('span',{class:'c-where'},r.marshals.full_name),el('span',{class:'c-ip'},sfmt(r.issued_at)+' → '+(r.returned_at?sfmt(r.returned_at):'—')+(r.issued_by_name?' · issued by '+r.issued_by_name:'')+(r.received_by_name?' · received by '+r.received_by_name:'')+(r.voided_at&&r.void_reason?' · '+r.void_reason:''))),
+      isMgr()&&!r.voided_at?el('div',{class:'c-act'},menu([r.returned_at?btn('Undo return',()=>undoRet(r)):btn('Change marshal',()=>chgMar(r)),dbtn('Void',()=>voidAs(r))])):null)});
+  const hisCard=el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Recent history'),el('button',{class:'btn alt sm',onclick:()=>csv('device-log.csv',['Device','Marshal','Out','In','Issued by','Received by','Note on issue','Note on return','Voided','Void reason'],H.map(r=>[r.devices.tag,r.marshals.full_name,r.issued_at,r.returned_at||'',r.issued_by_name,r.received_by_name,r.note,r.return_note,r.voided_at||'',r.void_reason||'']))},'Download CSV')),hisWrap);
+  const stat=(t,v,c)=>el('div',{class:'stat'},el('b',{style:c?'color:'+c:''},v),el('span',{},t));
+  const tabs=[['out','Out now',out.length],['dev','Devices',D.length],['mar','Marshals',M.length],['his','History',H.length]],panels={out:outCard,dev:devCard,mar:marCard,his:hisCard},tabBar=el('div',{class:'tabs'});
+  const showTab=k=>{ui.tab=k;tabBar.replaceChildren(...tabs.map(([id,l,n])=>el('button',{type:'button',class:'tab'+(k===id?' on':''),onclick:()=>showTab(id)},l+' ',el('b',{},n))));Object.entries(panels).forEach(([id,p])=>p.style.display=id===k?'':'none')};
+  showTab(ui.tab||(out.length?'out':'dev'));
   V.replaceChildren(head('Devices','Issue handhelds to marshals in the morning and check them back in each afternoon.'),eb,
-    el('section',{class:'grid'},kp('Total devices',D.length),kp('In the office',free.length,'#04503B'),kp('Out with marshals',out.length,'#9A5300'),kp('In repair / lost',rep.length,rep.length?'#B42318':'')),
+    el('div',{class:'strip'},stat('Total devices',D.length),stat('In the office',free.length,'#04503B'),stat('Out with marshals',out.length,'#9A5300'),stat('In repair / lost',rep.length,rep.length?'#B42318':'')),
     el('div',{class:'card pad'},el('h2',{},'Issue a device'),el('div',{class:'row'},field('Marshal',mar),field('Note',note)),el('div',{style:'display:flex;flex-direction:column;gap:10px'},el('b',{},'Available devices ('+free.length+')'),el('div',{class:'row'},dq,tgl),picked,box,none),el('div',{class:'row'},issue)),
-    el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Out with marshals ('+out.length+')'),el('div',{class:'row'},allBtn,retSel)),tbl(['','Device','Marshal','Issued','By','Status',''],outRows,'Every device is back in the office.')),
-    devCard,
-    marCard,
-    el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Recent history'),el('button',{class:'btn alt sm',onclick:()=>csv('device-log.csv',['Device','Marshal','Out','In','Issued by','Received by','Note on issue','Note on return','Voided','Void reason'],H.map(r=>[r.devices.tag,r.marshals.full_name,r.issued_at,r.returned_at||'',r.issued_by_name,r.received_by_name,r.note,r.return_note,r.voided_at||'',r.void_reason||'']))},'Download CSV')),
-      tbl(['Device','Marshal','Out','In','Issued by','Received by',''],H.map(r=>[r.devices.tag,r.marshals.full_name,fmt(r.issued_at),histIn(r),r.issued_by_name||'',r.received_by_name||'',histAct(r)]),'No history yet.')))}
+    tabBar,outCard,devCard,marCard,hisCard)}
 
 /* ---------- STOCK COUNTS ---------- */
 async function counts(id){
