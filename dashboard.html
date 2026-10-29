@@ -55,6 +55,7 @@ td input,td select{height:36px;font-size:14px;width:100%;min-width:90px}
 .b-ok{background:#E6F4EE;color:#04503B}.b-low{background:#FFF4E0;color:#9A5300}.b-out{background:#FDECEA;color:#B42318}.b-gray{background:#EDF0EE;color:#4A5B54}
 .alert{display:flex;justify-content:space-between;gap:12px;padding:12px;border-radius:10px;font-size:14px}
 .alert.out{background:#FDECEA;color:#B42318}.alert.low{background:#FFF4E0;color:#9A5300}.alert b{color:#12201B}.alert i{font-style:normal;font-weight:700;white-space:nowrap}
+.inv td{vertical-align:top;padding:16px}.inv th{padding:14px 16px;white-space:nowrap}.inv .nw{white-space:nowrap}.inv .m{display:block;color:#4A5B54;font-size:12px;font-weight:500;margin-top:3px}.inv .num{font-size:18px;font-weight:800;line-height:1.2}.inv .nm{font-weight:700;font-size:15px}.inv .acts{display:flex;gap:8px;flex-wrap:nowrap}.inv .btn.del{background:#fff;color:#B42318;border:1.5px solid #F0C4BF}.inv .btn.del:hover{background:#FDECEA}.inv .none{color:#8A9690}
 .empty{padding:16px;color:#4A5B54;font-size:14px}
 #toast{position:fixed;right:20px;bottom:20px;max-width:360px;padding:14px 18px;border-radius:12px;color:#fff;font-weight:600;font-size:15px;display:none;z-index:9}
 .lines{display:flex;flex-direction:column;gap:10px}
@@ -81,6 +82,7 @@ nav a{padding:14px 12px}
 main{flex:1 1 100%;padding:20px 16px calc(32px + env(safe-area-inset-bottom));gap:20px}
 }
 @media(max-width:640px){
+.inv td{padding:6px 0}.inv .acts{flex-wrap:wrap;justify-content:flex-end}
 h1{font-size:22px}h2{font-size:17px}
 .head,.head .row{width:100%}
 .head .row>*{flex:1 1 100%}
@@ -209,7 +211,7 @@ async function home(){
 
 /* ---------- INVENTORY ---------- */
 const money=v=>v==null||v===''?'—':'E'+Number(v).toLocaleString([],{minimumFractionDigits:2,maximumFractionDigits:2});
-const dday=d=>d?new Date(String(d).length===10?d+'T00:00:00':d).toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'}):'—';
+const dday=d=>d?new Date(String(d).length===10?d+'T00:00:00':d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
 const COND={new:['New','b-ok'],good:['Good','b-ok'],fair:['Fair','b-low'],damaged:['Damaged','b-out']};
 async function inventory(){
   const [ra,rb,rc]=await Promise.all([S.db.from('items').select('*, stock_levels(quantity)').order('name'),
@@ -221,12 +223,13 @@ async function inventory(){
   const open=orders.filter(o=>o.status==='ordered').reverse();
   const today=new Date().toISOString().slice(0,10);
   const value=rows.reduce((a,i)=>a+(i.cost||0)*i.stock_levels.reduce((x,s)=>x+s.quantity,0),0);
-  const dd=m=>m?el('span',{title:fmt(m.created_at)},new Date(m.created_at).toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'}),el('span',{style:'margin-left:6px;color:#4A5B54;font-size:12px;font-weight:700'},(m.delta>0?'+':'')+m.delta)):el('span',{style:'color:#4A5B54'},'—');
+  const dd=m=>m?el('span',{class:'nw',title:fmt(m.created_at)},dday(m.created_at),el('span',{class:'m'},(m.delta>0?'+':'')+m.delta+' units')):el('span',{class:'none'},'—');
   const q=el('input',{type:'search',placeholder:'Search name, SKU or barcode'}),form=el('div'),body=el('div'),ordCard=el('div');
   const status=(i,t)=>!i.is_active?badge('Inactive','b-gray'):t===0?badge('Out','b-out'):(i.reorder_level>0&&t<=i.reorder_level)?badge('Low','b-low'):badge('OK','b-ok');
-  const ordCell=i=>lastOrd[i]?el('span',{},dday(lastOrd[i]),onOrder[i]?el('span',{style:'margin-left:6px;color:#9A5300;font-size:12px;font-weight:700'},onOrder[i]+' on order'):''):el('span',{style:'color:#4A5B54'},'—');
-  const revCell=i=>i.review_date?el('span',{style:i.review_date<today?'color:#B42318;font-weight:700':'',title:i.review_date<today?'Review overdue':''},dday(i.review_date)):el('span',{style:'color:#4A5B54'},'—');
-  const draw=()=>{const f=q.value.toLowerCase();body.replaceChildren(tbl(['SKU','Name','On hand','Reorder at','Ordered','Last received','Last taken out',isMgr()?'Cost / Price':'Price','Condition','Review date','Status',''],rows.filter(i=>(i.name+i.sku+(i.barcode||'')+(i.category||'')).toLowerCase().includes(f)).map(i=>{const t=i.stock_levels.reduce((a,s)=>a+s.quantity,0),c=COND[i.condition]||COND.new;return[i.sku,el('span',{title:i.description||''},i.name,i.category?el('span',{style:'display:block;color:#4A5B54;font-size:12px'},i.category):''),t+' '+i.unit,i.reorder_level,ordCell(i.id),dd(lastIn[i.id]),dd(lastOut[i.id]),isMgr()?money(i.cost)+' / '+money(i.price):money(i.price),badge(c[0],c[1]),revCell(i),status(i,t),isMgr()?el('div',{class:'row'},el('button',{class:'btn alt sm',onclick:()=>order(i)},'Order'),el('button',{class:'btn alt sm',onclick:()=>edit(i)},'Edit'),el('button',{class:'btn red sm',onclick:()=>del(i)},'Delete')):'']}),'No items match.'))};
+  const ordCell=i=>lastOrd[i]?el('span',{class:'nw'},dday(lastOrd[i]),onOrder[i]?el('span',{class:'m',style:'color:#9A5300;font-weight:700'},onOrder[i]+' units on order'):''):el('span',{class:'none'},'—');
+  const priceCell=i=>(i.cost==null&&i.price==null)?el('span',{class:'none'},'Not set'):isMgr()?el('span',{class:'nw'},'Cost '+money(i.cost),el('span',{class:'m'},'Price '+money(i.price))):el('span',{class:'nw'},money(i.price));
+  const condCell=i=>{const c=COND[i.condition]||COND.new;return el('span',{},badge(c[0],c[1]),i.review_date?el('span',{class:'m nw',style:i.review_date<today?'color:#B42318;font-weight:700':''},(i.review_date<today?'Review overdue ':'Review ')+dday(i.review_date)):'')};
+  const draw=()=>{const f=q.value.toLowerCase();body.replaceChildren(el('div',{class:'inv'},tbl(['Item','On hand','Ordered','Last received','Last taken out',isMgr()?'Cost / Price':'Price','Condition','Status',''],rows.filter(i=>(i.name+i.sku+(i.barcode||'')+(i.category||'')).toLowerCase().includes(f)).map(i=>{const t=i.stock_levels.reduce((a,s)=>a+s.quantity,0);return[el('span',{title:i.description||''},el('span',{class:'nm'},i.name),el('span',{class:'m'},i.sku+(i.category?' · '+i.category:''))),el('span',{},el('span',{class:'num'},t.toLocaleString()),el('span',{class:'m'},i.unit+(i.reorder_level>0?' · reorder at '+i.reorder_level:''))),ordCell(i.id),dd(lastIn[i.id]),dd(lastOut[i.id]),priceCell(i),condCell(i),status(i,t),isMgr()?el('div',{class:'acts'},el('button',{class:'btn alt sm',onclick:()=>order(i)},'Order'),el('button',{class:'btn alt sm',onclick:()=>edit(i)},'Edit'),el('button',{class:'btn del sm',onclick:()=>del(i)},'Delete')):'']}),'No items match.')))};
   const drawOrders=()=>{ordCard.replaceChildren(open.length?el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Open orders ('+open.length+')')),tbl(['Ordered','Item','Qty','Site','Supplier','Expected',''],open.map(o=>[dday(o.ordered_at),o.items.sku+' – '+o.items.name,o.quantity,o.sites.name,o.supplier||'',dday(o.expected_at),isMgr()?el('div',{class:'row'},el('button',{class:'btn sm',onclick:async()=>{try{ok(await S.db.rpc('receive_purchase_order',{p_id:o.id}));toast('Order received into stock');inventory()}catch(e){fail(e)}}},'Mark received'),el('button',{class:'btn alt sm',onclick:async()=>{if(!confirm('Cancel this order?'))return;try{ok(await S.db.from('purchase_orders').update({status:'cancelled'}).eq('id',o.id));toast('Order cancelled');inventory()}catch(e){fail(e)}}},'Cancel')):''])),''):'')};
   const order=i=>{const f={site:sel(siteOpts(),S.p.site_id||''),qty:el('input',{type:'number',min:1,value:Math.max(1,(i.reorder_level||0)*2)}),sup:el('input',{placeholder:'Optional'}),exp:el('input',{type:'date'}),note:el('input',{placeholder:'Optional'})};
     form.replaceChildren(el('div',{class:'card pad'},el('h2',{},'Order stock: '+i.name+' ('+i.sku+')'),el('div',{class:'row'},field('Deliver to site',f.site),field('Quantity',f.qty),field('Supplier',f.sup),field('Expected date',f.exp)),field('Note',f.note),
