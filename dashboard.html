@@ -328,12 +328,13 @@ async function devices(){
   const bulk=cand.length?el('button',{class:'btn alt sm',type:'button',onclick:()=>{if(confirm('Reissue previous devices?\n\n'+cand.map(([m,l])=>m.full_name+' → '+l.tag).join('\n')))reissue(cand)}},'Reissue all previous ('+cand.length+')'):null;
   const marRow=m=>{const dv=byM[m.full_name]||[],pv=prevFor(m);return el('div',{class:'crow'},
     el('div',{class:'c-main'},el('b',{class:'c-tag c-nm'},m.full_name),m.is_active?null:badge('Inactive','b-gray')),
-    el('div',{class:'c-meta'},m.badge_no?el('span',{class:'c-ip'},'PI '+m.badge_no):null,m.phone?el('a',{class:'c-ip',href:'tel:'+m.phone},m.phone):null,dv.map(t=>el('span',{class:'pill'},t))),
+    el('div',{class:'c-meta'},m.badge_no?el('span',{class:'c-ip'},piFmt(m.badge_no)):null,m.phone?el('a',{class:'c-ip',href:'tel:'+m.phone},m.phone):null,dv.map(t=>el('span',{class:'pill'},t))),
     el('div',{class:'c-act'},pv?el('button',{class:'btn sm',type:'button',title:'Issue the device this marshal had last time',onclick:()=>reissue([[m,pv]])},'Reissue '+pv.tag):null,
       isMgr()?btn('Edit',()=>editMar(m)):null,
       isMgr()?menu([btn(m.is_active?'Deactivate':'Activate',async()=>{try{ok(await S.db.from('marshals').update({is_active:!m.is_active}).eq('id',m.id));devices()}catch(e){fail(e)}}),dbtn('Delete',()=>delMar(m))]):null))};
   const [addDT,addDP]=addPanel('Add device','Add a device',[field('Tag',tg),field('IP address',ip)],el('div',{class:'row'},addD));
   const [addMT,addMP]=addPanel('Add marshal','Add a marshal',[field('Full name',nm),field('PI code',bd),field('Phone',ph)],el('div',{class:'row'},addM));
+  const piFmt=b=>'PI-'+String(b).trim().replace(/^PI[\s-]*/i,'');
   const sfmt=d=>new Date(d).toLocaleString([],{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
   const shortN=n=>{const p=(n||'').trim().split(/\s+/);return p.length>1?p[0]+' '+p[p.length-1][0]+'.':n};
   const det=el('div',{class:'det'});
