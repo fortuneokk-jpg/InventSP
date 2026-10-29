@@ -104,6 +104,34 @@ td.empty{display:block;text-align:left;padding:8px 0}
 #toast{left:12px;right:12px;max-width:none;bottom:calc(12px + env(safe-area-inset-bottom))}
 }
 @media(max-width:360px){.grid{grid-template-columns:1fr}}
+/* compact searchable lists (devices + marshals) */
+.ctools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:0 16px 12px}
+.cq{flex:1 1 220px;max-width:340px;height:40px}
+.fchips{display:flex;flex-wrap:wrap;gap:6px}
+.fc{height:34px;padding:0 12px;border:1.5px solid #B8C4BE;border-radius:999px;background:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer;color:#12201B}
+.fc b{color:#4A5B54;font-weight:700;margin-left:2px}
+.fc.on{background:#046A4E;border-color:#046A4E;color:#fff}.fc.on b{color:#D3E8DF}
+.crow{display:flex;align-items:center;gap:6px 12px;padding:6px 16px;min-height:48px;border-top:1px solid #E6ECE8}
+.crow:hover{background:#F7FAF8}
+.c-main{flex:0 0 210px;display:flex;align-items:center;gap:8px;min-width:0}
+.c-tag{font-weight:800;font-size:15px}
+.c-nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-meta{flex:1 1 0;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;font-size:13px;color:#4A5B54}
+.c-where{min-width:130px;color:#12201B;font-weight:600}
+.c-ip{color:#4A5B54;font-size:13px}
+a.c-ip{color:#046A4E;font-weight:600}
+.c-act{display:flex;gap:6px;align-items:center;flex:0 0 auto}
+.pill{padding:1px 8px;border-radius:6px;background:#FFF4E0;color:#9A5300;font-weight:800;font-size:12px}
+.cfoot{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 16px 12px;border-top:1px solid #E6ECE8}
+.clist .empty{border-top:1px solid #E6ECE8}
+.addp{border-top:1px solid #E6ECE8}
+.more{position:relative}
+.more>summary{list-style:none;cursor:pointer;width:36px;height:36px;border:1.5px solid #046A4E;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#046A4E;font-weight:800;background:#fff;user-select:none}
+.more>summary::-webkit-details-marker{display:none}
+.more[open]>summary{background:#E6F4EE}
+.more .menu{position:absolute;right:0;top:40px;z-index:6;background:#fff;border:1px solid #DCE5E0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.14);padding:6px;display:flex;flex-direction:column;gap:6px;min-width:170px}
+.btn.dg{color:#B42318;border-color:#B42318}.btn.dg:hover{background:#FDECEA}
+@media(max-width:640px){.crow{flex-wrap:wrap;padding:8px 14px}.c-main{flex:1 1 auto}.c-act{order:2}.c-meta{order:3;flex:1 1 100%}.c-where{min-width:0}.cq{max-width:none;flex:1 1 100%}}
 </style>
 </head>
 <body>
@@ -200,10 +228,11 @@ async function transfers(){
 
 /* ---------- DEVICES ---------- */
 async function devices(){
-  const [a,b,c]=await Promise.all([S.db.from('device_status').select('*').order('tag'),
+  const [a,b,c,d]=await Promise.all([S.db.from('device_status').select('*').order('tag'),
     S.db.from('device_assignments').select('id,marshal_id,issued_at,returned_at,issued_by_name,received_by_name,note,return_note,voided_at,void_reason,devices(tag),marshals(full_name)').order('issued_at',{ascending:false}).limit(60),
-    S.db.from('marshals').select('*').order('full_name')]);
-  const D=ok(a),H=ok(b),M=ok(c),out=D.filter(x=>x.is_out),free=D.filter(x=>!x.is_out&&x.status==='active'),rep=D.filter(x=>x.status!=='active');
+    S.db.from('marshals').select('*').order('full_name'),
+    S.db.from('device_assignments').select('marshal_id,issued_at,devices(id,tag)').is('voided_at',null).order('issued_at',{ascending:false}).limit(500)]);
+  const D=ok(a),H=ok(b),M=ok(c),J=ok(d),out=D.filter(x=>x.is_out),free=D.filter(x=>!x.is_out&&x.status==='active'),rep=D.filter(x=>x.status!=='active');
   const today=new Date().toDateString(),late=x=>new Date(x.issued_at).toDateString()!==today;
   const kp=(t,v,c)=>el('div',{class:'card kpi'},el('div',{},t),el('div',{style:c?'color:'+c:''},v));
   const act=M.filter(m=>m.is_active),mar=sel(act.map(m=>({v:m.id,t:m.full_name+(m.badge_no?' ('+m.badge_no+')':'')})),(act.find(m=>m.id===S.lastMar)||act[0]||{}).id),note=el('input',{placeholder:'Optional, e.g. spare battery given'});
@@ -238,14 +267,65 @@ async function devices(){
   const histAct=r=>!isMgr()||r.voided_at?'':el('div',{class:'row'},r.returned_at?btn('Undo return',()=>undoRet(r)):btn('Change marshal',()=>chgMar(r)),btn('Void',()=>voidAs(r)));
   const histIn=r=>r.voided_at?el('span',{},badge('Voided','b-gray'),r.void_reason?' '+r.void_reason:''):r.returned_at?fmt(r.returned_at):badge('Still out','b-low');
   const stBadge=x=>x.status==='active'?badge('In service','b-ok'):badge(x.status==='repair'?'In repair':'Lost','b-out');
+  /* ---- compact, searchable lists ---- */
+  const ui=(S.ui=S.ui||{});
+  const clist=(key,o)=>{
+    const st=ui[key]=ui[key]||{q:'',f:'all',all:false};
+    const inp=el('input',{type:'search',placeholder:o.ph,autocomplete:'off',class:'cq',value:st.q});
+    const fch=el('div',{class:'fchips'}),list=el('div',{class:'clist'}),cnt=el('span',{class:'sub'}),more=el('button',{class:'btn alt sm',type:'button'});
+    const paint=()=>{
+      const q=st.q.trim().toLowerCase();
+      fch.replaceChildren(...o.filters.map(([k,l,fn])=>el('button',{type:'button',class:'fc'+(st.f===k?' on':''),onclick:()=>{st.f=k;paint()}},l+' ',el('b',{},o.items.filter(fn).length))));
+      const fn=o.filters.find(f=>f[0]===st.f)[2],r=o.items.filter(x=>fn(x)&&(!q||o.text(x).includes(q)));
+      const narrowed=!!q||st.f!=='all',shown=(st.all||narrowed)?r:r.slice(0,o.page);
+      list.replaceChildren(...(shown.length?shown.map(o.row):[el('p',{class:'empty'},o.items.length?'Nothing matches your search.':o.empty)]));
+      cnt.textContent='Showing '+shown.length+' of '+o.items.length;
+      more.style.display=(!narrowed&&r.length>o.page)?'':'none';
+      more.textContent=st.all?'Show fewer':'Show all '+r.length;
+    };
+    inp.addEventListener('input',()=>{st.q=inp.value;paint()});
+    more.addEventListener('click',()=>{st.all=!st.all;paint()});
+    paint();
+    return el('div',{},el('div',{class:'ctools'},inp,fch),list,el('div',{class:'cfoot'},cnt,more));
+  };
+  if(!window._mm){window._mm=1;document.addEventListener('click',e=>document.querySelectorAll('details.more[open]').forEach(d=>{if(!d.contains(e.target))d.open=false}))}
+  const menu=items=>{const b=items.filter(Boolean);return b.length?el('details',{class:'more'},el('summary',{title:'More actions'},'⋯'),el('div',{class:'menu'},b)):null};
+  const dbtn=(t,f)=>{const b=btn(t,f);b.classList.add('dg');return b};
+  const addPanel=(label,title,fields,go)=>{const p=el('div',{class:'pad addp',style:'display:none'},el('h2',{},title),el('div',{class:'row'},fields),el('div',{class:'row'},go));const t=el('button',{class:'btn sm',type:'button'},'+ '+label);t.addEventListener('click',()=>{const o=p.style.display==='none';p.style.display=o?'':'none';t.textContent=o?'× Close':'+ '+label});return[t,p]};
+  const dBadge=x=>x.is_out?badge('Out','b-low'):stBadge(x);
+  const Ds=[...D].sort((a,b)=>a.tag.localeCompare(b.tag,undefined,{numeric:true}));
+  const byM={};out.forEach(x=>(byM[x.marshal_name]=byM[x.marshal_name]||[]).push(x.tag));
+  const toggleRepair=x=>async()=>{try{ok(await S.db.from('devices').update({status:x.status==='active'?'repair':'active'}).eq('id',x.device_id));devices()}catch(e){fail(e)}};
+  const devRow=x=>el('div',{class:'crow'},
+    el('div',{class:'c-main'},el('b',{class:'c-tag'},x.tag),dBadge(x)),
+    el('div',{class:'c-meta'},el('span',{class:'c-where'},x.is_out?x.marshal_name:'Office'),x.ip_address?el('span',{class:'c-ip'},x.ip_address):null),
+    isMgr()?el('div',{class:'c-act'},btn('Edit',()=>editDev(x)),menu([!x.is_out?btn(x.status==='active'?'Mark in repair':'Back in service',toggleRepair(x)):null,!x.is_out?dbtn('Delete',()=>delDev(x)):null])):null);
+  const lastBy={};J.forEach(r=>{if(r.marshal_id&&r.devices&&!lastBy[r.marshal_id])lastBy[r.marshal_id]={id:r.devices.id,tag:r.devices.tag}});
+  const freeIds=new Set(free.map(x=>x.device_id));
+  const prevFor=m=>{const l=lastBy[m.id];return m.is_active&&l&&!(byM[m.full_name]||[]).length&&freeIds.has(l.id)?l:null};
+  const reissue=async list=>{try{const r=await Promise.allSettled(list.map(([m,l])=>S.db.rpc('issue_device',{p_device_id:l.id,p_marshal_id:m.id,p_note:null}).then(ok)));const bad=r.filter(z=>z.status==='rejected');if(bad.length)toast(bad.length+' failed: '+bad[0].reason.message,true);else{if(list.length===1)S.lastMar=list[0][0].id;toast(list.length===1?list[0][1].tag+' issued to '+list[0][0].full_name:list.length+' devices issued')}devices()}catch(e){fail(e)}};
+  const cand=[],usedD=new Set();M.forEach(m=>{const l=prevFor(m);if(l&&!usedD.has(l.id)){usedD.add(l.id);cand.push([m,l])}});
+  const bulk=cand.length?el('button',{class:'btn alt sm',type:'button',onclick:()=>{if(confirm('Reissue previous devices?\n\n'+cand.map(([m,l])=>m.full_name+' → '+l.tag).join('\n')))reissue(cand)}},'Reissue all previous ('+cand.length+')'):null;
+  const marRow=m=>{const dv=byM[m.full_name]||[],pv=prevFor(m);return el('div',{class:'crow'},
+    el('div',{class:'c-main'},el('b',{class:'c-tag c-nm'},m.full_name),m.is_active?null:badge('Inactive','b-gray')),
+    el('div',{class:'c-meta'},m.badge_no?el('span',{class:'c-ip'},'PI '+m.badge_no):null,m.phone?el('a',{class:'c-ip',href:'tel:'+m.phone},m.phone):null,dv.map(t=>el('span',{class:'pill'},t))),
+    el('div',{class:'c-act'},pv?el('button',{class:'btn sm',type:'button',title:'Issue the device this marshal had last time',onclick:()=>reissue([[m,pv]])},'Reissue '+pv.tag):null,
+      isMgr()?btn('Edit',()=>editMar(m)):null,
+      isMgr()?menu([btn(m.is_active?'Deactivate':'Activate',async()=>{try{ok(await S.db.from('marshals').update({is_active:!m.is_active}).eq('id',m.id));devices()}catch(e){fail(e)}}),dbtn('Delete',()=>delMar(m))]):null))};
+  const [addDT,addDP]=addPanel('Add device','Add a device',[field('Tag',tg),field('IP address',ip)],el('div',{class:'row'},addD));
+  const [addMT,addMP]=addPanel('Add marshal','Add a marshal',[field('Full name',nm),field('PI code',bd),field('Phone',ph)],el('div',{class:'row'},addM));
+  const devCard=el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'All devices ('+D.length+')'),isMgr()?addDT:null),isMgr()?addDP:null,
+    clist('dev',{items:Ds,page:10,ph:'Search tag, IP or marshal…',empty:'No devices yet.',text:x=>(x.tag+' '+(x.ip_address||'')+' '+(x.marshal_name||'')+' '+(x.note||'')).toLowerCase(),
+      filters:[['all','All',()=>true],['office','In office',x=>!x.is_out&&x.status==='active'],['out','Out',x=>x.is_out],['rep','Repair / lost',x=>x.status!=='active']],row:devRow}));
+  const marCard=el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Marshals ('+M.length+')'),el('div',{class:'row'},bulk,isMgr()?addMT:null)),isMgr()?addMP:null,
+    clist('mar',{items:M,page:10,ph:'Search name, PI code, phone or device…',empty:'No marshals yet.',text:m=>(m.full_name+' '+(m.badge_no||'')+' '+(m.phone||'')+' '+(byM[m.full_name]||[]).join(' ')).toLowerCase(),
+      filters:[['all','All',()=>true],['act','Active',m=>m.is_active],['has','Has a device',m=>(byM[m.full_name]||[]).length>0],['off','Inactive',m=>!m.is_active]],row:marRow}));
   V.replaceChildren(head('Devices','Issue handhelds to marshals in the morning and check them back in each afternoon.'),eb,
     el('section',{class:'grid'},kp('Total devices',D.length),kp('In the office',free.length,'#04503B'),kp('Out with marshals',out.length,'#9A5300'),kp('In repair / lost',rep.length,rep.length?'#B42318':'')),
     el('div',{class:'card pad'},el('h2',{},'Issue a device'),el('div',{class:'row'},field('Marshal',mar),field('Note',note)),el('div',{style:'display:flex;flex-direction:column;gap:10px'},el('b',{},'Available devices ('+free.length+')'),el('div',{class:'row'},dq,tgl),picked,box,none),el('div',{class:'row'},issue)),
     el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Out with marshals ('+out.length+')'),el('div',{class:'row'},allBtn,retSel)),tbl(['','Device','Marshal','Issued','By','Status',''],outRows,'Every device is back in the office.')),
-    el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'All devices')),tbl(['Device','IP address','Status','Where',''],D.map(x=>[x.tag,x.ip_address||'',stBadge(x),x.is_out?x.marshal_name:'Office',isMgr()?el('div',{class:'row'},!x.is_out?btn(x.status==='active'?'Mark in repair':'Back in service',async()=>{try{ok(await S.db.from('devices').update({status:x.status==='active'?'repair':'active'}).eq('id',x.device_id));devices()}catch(e){fail(e)}}):null,btn('Edit',()=>editDev(x)),!x.is_out?btn('Delete',()=>delDev(x)):null):'']),'No devices yet.'),
-      isMgr()?el('div',{class:'pad'},el('h2',{},'Add a device'),el('div',{class:'row'},field('Tag',tg),field('IP address',ip)),el('div',{class:'row'},addD)):null),
-    el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Marshals'),),tbl(['Name','PI code','Phone','Status',''],M.map(m=>[m.full_name,m.badge_no||'',m.phone||'',badge(m.is_active?'Active':'Inactive',m.is_active?'b-ok':'b-gray'),isMgr()?el('div',{class:'row'},btn('Edit',()=>editMar(m)),btn(m.is_active?'Deactivate':'Activate',async()=>{try{ok(await S.db.from('marshals').update({is_active:!m.is_active}).eq('id',m.id));devices()}catch(e){fail(e)}}),btn('Delete',()=>delMar(m))):'']),'No marshals yet. Add the first one below.'),
-      el('div',{class:'pad'},el('h2',{},'Add a marshal'),el('div',{class:'row'},field('Full name',nm),field('PI code',bd),field('Phone',ph)),el('div',{class:'row'},addM))),
+    devCard,
+    marCard,
     el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Recent history'),el('button',{class:'btn alt sm',onclick:()=>csv('device-log.csv',['Device','Marshal','Out','In','Issued by','Received by','Note on issue','Note on return','Voided','Void reason'],H.map(r=>[r.devices.tag,r.marshals.full_name,r.issued_at,r.returned_at||'',r.issued_by_name,r.received_by_name,r.note,r.return_note,r.voided_at||'',r.void_reason||'']))},'Download CSV')),
       tbl(['Device','Marshal','Out','In','Issued by','Received by',''],H.map(r=>[r.devices.tag,r.marshals.full_name,fmt(r.issued_at),histIn(r),r.issued_by_name||'',r.received_by_name||'',histAct(r)]),'No history yet.')))}
 
