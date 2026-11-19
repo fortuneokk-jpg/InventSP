@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/jpeg" href="Smart_Parker_Logo.jpg">
+<link rel="apple-touch-icon" href="Smart_Parker_Logo.jpg">
+<title>InventorySP</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Manrope',system-ui,sans-serif;background:#F5F8F6;color:#12201B}
+a{color:inherit;text-decoration:none}
+.wrap{min-height:100vh;display:flex;flex-wrap:wrap}
+aside{flex:0 0 248px;min-width:220px;background:#046A4E;color:#fff;padding:24px 16px;display:flex;flex-direction:column;gap:24px}
+.brand{display:flex;align-items:center;gap:12px;padding:0 8px;font-size:20px;font-weight:800}
+.tile{width:48px;height:48px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tile img{width:92%;height:92%;object-fit:contain}
+nav{display:flex;flex-direction:column;gap:4px;font-size:15px;font-weight:600}
+nav a{padding:12px;border-radius:10px}
+nav a:hover{background:#0A7C5D}
+nav a.on{background:#fff;color:#046A4E}
+.sep{height:1px;background:#2D8A71;margin:8px 0}
+.me{margin-top:auto;padding:12px;border-radius:10px;background:#04503B;font-size:14px}
+.me b{display:block;overflow-wrap:anywhere}.me span{color:#D3E8DF}
+.me button{margin-top:10px;width:100%;height:40px;border:1px solid #6FB9A3;background:transparent;color:#fff;border-radius:8px;font:inherit;font-weight:700;cursor:pointer}
+main{flex:1 1 640px;min-width:0;padding:32px;display:flex;flex-direction:column;gap:24px}
+.head{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between}
+h1{margin:0 0 4px;font-size:28px;font-weight:800;letter-spacing:-.5px}
+.sub{margin:0;color:#4A5B54}
+h2{margin:0;font-size:18px;font-weight:800}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+input,select,textarea{height:44px;padding:0 14px;font:inherit;font-size:15px;border:1.5px solid #B8C4BE;border-radius:10px;background:#fff;max-width:100%}
+input:focus,select:focus{outline:3px solid #9ADBC4;border-color:#046A4E}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:600;flex:1 1 180px}
+.btn{height:44px;padding:0 18px;border:0;border-radius:10px;background:#046A4E;color:#fff;font:inherit;font-weight:700;cursor:pointer}
+.btn:hover{background:#04503B}.btn:disabled{opacity:.6;cursor:wait}
+.btn.alt{background:#fff;color:#046A4E;border:1.5px solid #046A4E}.btn.alt:hover{background:#F0F7F4}
+.btn.sm{height:36px;padding:0 12px;font-size:14px}
+.btn.red{background:#B42318}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.card{background:#fff;border:1px solid #DCE5E0;border-radius:14px}
+.pad{padding:20px;display:flex;flex-direction:column;gap:16px}
+.qa{padding:18px;display:flex;flex-direction:column;gap:4px}.qa b{font-size:16px}.qa span{font-size:14px;color:#4A5B54}
+.qa:hover{border-color:#046A4E;background:#F0F7F4}
+.kpi{padding:20px}.kpi div:first-child{font-size:14px;color:#4A5B54;font-weight:600}.kpi div:last-child{font-size:36px;font-weight:800;margin-top:6px}
+.cols{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:560px}
+th{padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#4A5B54;letter-spacing:.5px;text-transform:uppercase}
+td{padding:12px 16px;border-top:1px solid #E6ECE8;font-size:14px;vertical-align:middle}
+td input,td select{height:36px;font-size:14px;width:100%;min-width:90px}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700}
+.b-ok{background:#E6F4EE;color:#04503B}.b-low{background:#FFF4E0;color:#9A5300}.b-out{background:#FDECEA;color:#B42318}.b-gray{background:#EDF0EE;color:#4A5B54}
+.alert{display:flex;justify-content:space-between;gap:12px;padding:12px;border-radius:10px;font-size:14px}
+.alert.out{background:#FDECEA;color:#B42318}.alert.low{background:#FFF4E0;color:#9A5300}.alert b{color:#12201B}.alert i{font-style:normal;font-weight:700;white-space:nowrap}
+.inv td{vertical-align:top;padding:16px}.inv th{padding:14px 16px;white-space:nowrap}.inv .nw{white-space:nowrap}.inv .m{display:block;color:#4A5B54;font-size:12px;font-weight:500;margin-top:3px}.inv .num{font-size:18px;font-weight:800;line-height:1.2}.inv .nm{font-weight:700;font-size:15px}.inv .acts{display:flex;gap:8px;flex-wrap:nowrap}.inv .btn.del{background:#fff;color:#B42318;border:1.5px solid #F0C4BF}.inv .btn.del:hover{background:#FDECEA}.inv .none{color:#8A9690}
+.empty{padding:16px;color:#4A5B54;font-size:14px}
+#toast{position:fixed;right:20px;bottom:20px;max-width:360px;padding:14px 18px;border-radius:12px;color:#fff;font-weight:600;font-size:15px;display:none;z-index:9}
+.lines{display:flex;flex-direction:column;gap:10px}
+.sec{padding:18px 16px 12px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.burger{display:none;width:44px;height:44px;border-radius:10px;border:1px solid #6FB9A3;background:transparent;color:#fff;font-size:22px;cursor:pointer;align-items:center;justify-content:center}
+#drawer{display:flex;flex-direction:column;gap:24px;flex:1}
+main>*{width:100%;max-width:1280px;margin-inline:auto}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:0 14px;min-height:44px;border:1.5px solid #B8C4BE;border-radius:10px;background:#fff;font-weight:700;font-size:15px;cursor:pointer;user-select:none}
+.chip input{width:18px;height:18px;min-width:0;accent-color:#046A4E}
+.chip:has(input:checked){border-color:#046A4E;background:#E6F4EE}
+@media(min-width:900px){aside{position:sticky;top:0;height:100vh;overflow-y:auto}}
+@media(min-width:1400px){main{padding:40px 48px}}
+@media(max-width:899px){
+aside{flex:0 0 100%;min-width:0;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;gap:0;position:sticky;top:0;z-index:5}
+aside.open{max-height:100vh;max-height:100dvh;overflow-y:auto}
+.burger{display:inline-flex}
+#drawer{display:none;padding:16px 0 calc(8px + env(safe-area-inset-bottom))}
+aside.open #drawer{display:flex}
+.tile{width:40px;height:40px;border-radius:10px}
+nav a{padding:14px 12px}
+main{flex:1 1 100%;padding:20px 16px calc(32px + env(safe-area-inset-bottom));gap:20px}
+}
+@media(max-width:640px){
+.inv td{padding:6px 0}.inv .acts{flex-wrap:wrap;justify-content:flex-end}
+h1{font-size:22px}h2{font-size:17px}
+.head,.head .row{width:100%}
+.head .row>*{flex:1 1 100%}
+label.f{flex:1 1 100%}
+.row>.btn{flex:1 1 auto}
+.grid{grid-template-columns:repeat(2,1fr);gap:12px}
+.kpi{padding:16px}.kpi div:last-child{font-size:28px}
+.qa{padding:14px}
+.pad{padding:16px}
+.lines .row>select{flex:1 1 100%}.lines .row>input{flex:1 1 90px}
+.scroll{overflow:visible}
+table{min-width:0;display:block}thead{display:none}tbody{display:block}
+tr{display:block;padding:10px 16px;border-top:1px solid #E6ECE8}
+td{display:flex;justify-content:space-between;align-items:center;gap:12px;border:0;padding:6px 0;text-align:right;overflow-wrap:anywhere}
+td::before{content:attr(data-label);flex:0 0 38%;font-size:12px;font-weight:700;color:#4A5B54;text-transform:uppercase;letter-spacing:.5px;text-align:left}
+td[data-label='']::before,td:not([data-label])::before{display:none}
+td[data-label='']{justify-content:flex-end}
+td input,td select{flex:1;width:auto;min-width:0;max-width:62%}
+td input[type=checkbox]{flex:0 0 auto}
+td.empty{display:block;text-align:left;padding:8px 0}
+#toast{left:12px;right:12px;max-width:none;bottom:calc(12px + env(safe-area-inset-bottom))}
+}
+@media(max-width:360px){.grid{grid-template-columns:1fr}}
+/* compact searchable lists (devices + marshals) */
+.ctools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:0 16px 12px}
+.cq{flex:1 1 220px;max-width:340px;height:40px}
+.fchips{display:flex;flex-wrap:wrap;gap:6px}
+.fc{height:34px;padding:0 12px;border:1.5px solid #B8C4BE;border-radius:999px;background:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer;color:#12201B}
+.fc b{color:#4A5B54;font-weight:700;margin-left:2px}
+.fc.on{background:#046A4E;border-color:#046A4E;color:#fff}.fc.on b{color:#D3E8DF}
+.crow{display:flex;align-items:center;gap:6px 12px;padding:6px 16px;min-height:48px;border-top:1px solid #E6ECE8}
+.crow:hover{background:#F7FAF8}
+.c-main{flex:0 0 210px;display:flex;align-items:center;gap:8px;min-width:0}
+.c-tag{font-weight:800;font-size:15px}
+.c-nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-meta{flex:1 1 0;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;font-size:13px;color:#4A5B54}
+.c-where{min-width:130px;color:#12201B;font-weight:600}
+.c-ip{color:#4A5B54;font-size:13px}
+a.c-ip{color:#046A4E;font-weight:600}
+.c-act{display:flex;gap:6px;align-items:center;flex:0 0 auto}
+.pill{padding:1px 8px;border-radius:6px;background:#FFF4E0;color:#9A5300;font-weight:800;font-size:12px}
+.cfoot{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 16px 12px;border-top:1px solid #E6ECE8}
+.clist .empty{border-top:1px solid #E6ECE8}
+.addp{border-top:1px solid #E6ECE8}
+.more{position:relative}
+.more>summary{list-style:none;cursor:pointer;width:36px;height:36px;border:1.5px solid #046A4E;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#046A4E;font-weight:800;background:#fff;user-select:none}
+.more>summary::-webkit-details-marker{display:none}
+.more[open]>summary{background:#E6F4EE}
+.more .menu{position:absolute;right:0;top:40px;z-index:6;background:#fff;border:1px solid #DCE5E0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.14);padding:6px;display:flex;flex-direction:column;gap:6px;min-width:170px}
+.btn.dg{color:#B42318;border-color:#B42318}.btn.dg:hover{background:#FDECEA}
+@media(max-width:640px){.crow{flex-wrap:wrap;padding:8px 14px}.c-main{flex:1 1 auto}.c-act{order:2}.c-meta{order:3;flex:1 1 100%}.c-where{min-width:0}.cq{max-width:none;flex:1 1 100%}}
+/* tabs, tiles, dense stats */
+.strip{display:flex;flex-wrap:wrap;gap:8px}
+.stat{flex:1 1 130px;display:flex;align-items:baseline;gap:8px;padding:8px 14px;background:#fff;border:1px solid #DCE5E0;border-radius:12px}
+.stat b{font-size:22px;font-weight:800}.stat span{font-size:13px;color:#4A5B54;font-weight:600}
+.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid #DCE5E0;margin-bottom:-8px}
+.tab{padding:10px 14px;border:0;border-bottom:3px solid transparent;background:none;font:inherit;font-weight:700;color:#4A5B54;cursor:pointer;white-space:nowrap}
+.tab b{background:#EDF0EE;border-radius:999px;padding:1px 8px;font-size:12px;margin-left:4px}
+.tab.on{color:#046A4E;border-bottom-color:#046A4E}.tab.on b{background:#E6F4EE}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;padding:0 16px 12px}
+.tiles .empty{grid-column:1/-1;border:0}
+.tl{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:6px 9px;border:1.5px solid;border-radius:10px;font:inherit;text-align:left;cursor:pointer;min-width:0}
+.tl b{font-size:14px;font-weight:800}.tl span{font-size:11.5px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tl.off{background:#E6F4EE;border-color:#9ADBC4;color:#04503B}
+.tl.out{background:#FFF4E0;border-color:#F0C77A;color:#9A5300}
+.tl.bad{background:#FDECEA;border-color:#F0A9A2;color:#B42318}
+.tl.sel{outline:3px solid #046A4E;outline-offset:1px}
+.det{padding:0 16px 12px}.det:empty{display:none}
+.detin{border:1.5px solid #046A4E;border-radius:12px;background:#F7FAF8;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.dettop{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.dettop .btn{margin-left:auto}
+.two{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(400px,100%),1fr))}
+.two .c-main{flex:1 1 130px}.two .c-meta{flex:0 1 auto;max-width:55%}
+.crow input[type=checkbox]{width:20px;height:20px;min-width:0;padding:0;accent-color:#046A4E;flex:none}
+@media(max-width:640px){.two .c-meta{flex:1 1 100%;max-width:none}.tiles{grid-template-columns:repeat(auto-fill,minmax(84px,1fr))}.stat{flex:1 1 44%}}
+.watch{display:flex;flex-direction:column;gap:20px}
+.whead{display:flex;justify-content:space-between;align-items:baseline;gap:6px 12px;flex-wrap:wrap}
+.wst{font-size:12px;font-weight:800;padding:2px 10px;border-radius:999px}
+.wst.ok{background:#E6F4EE;color:#04503B}.wst.low{background:#FFF4E0;color:#9A5300}.wst.out{background:#FDECEA;color:#B42318}
+.wrow{display:flex;align-items:center;gap:14px;margin-top:8px}
+.wbar{position:relative;flex:1;height:18px;background:#EDF0EE;border-radius:999px}
+.wfill{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#046A4E,#2FA37F);position:relative;overflow:hidden;transition:width 1.4s cubic-bezier(.2,.8,.2,1)}
+.wfill::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%);transform:translateX(-100%);animation:wshine 2.6s ease-in-out 1.4s infinite}
+.wbar.low .wfill{background:linear-gradient(90deg,#D98200,#F0B04A)}.wbar.out .wfill{background:#B42318}
+.wbar.low,.wbar.out{animation:wpulse 1.6s ease-in-out infinite}
+.wmark{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1px;background:#12201B;border-radius:2px;text-decoration:none}
+.wq{min-width:96px;font-size:15px;text-align:right}.wnum{font-size:22px;font-weight:800}
+.wm{margin-top:6px}
+@keyframes wshine{to{transform:translateX(100%)}}
+@keyframes wpulse{50%{box-shadow:0 0 0 6px rgba(217,130,0,.2)}}
+@media(prefers-reduced-motion:reduce){.wfill{transition:none}.wfill::after,.wbar.low,.wbar.out{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<aside>
+<div class="top"><div class="brand"><div class="tile"><img src="Smart_Parker_Logo.jpg" alt="Smart Parker logo"></div>InventorySP</div><button id="burger" class="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="drawer">☰</button></div>
+<div id="drawer"><nav id="nav" aria-label="Main"></nav>
+<div class="me"><b id="uname">Loading…</b><span id="urole"></span><button id="out" type="button">Sign out</button></div></div>
+</aside>
+<main id="view"></main>
+</div>
+<div id="toast" role="status"></div>
+<script>
+const URL_='https://xstjznhcpungxhrjrvdq.supabase.co',KEY='sb_publishable_hkNdUICElgNZRd-hXHwgfw_WMgitNHU';
+const S={db:null,p:null,sites:[],items:[]};
+const V=document.getElementById('view');
+const el=(t,p,...k)=>{const e=document.createElement(t);for(const [a,v] of Object.entries(p||{})){if(a==='class')e.className=v;else if(a.startsWith('on'))e.addEventListener(a.slice(2),v);else if(a==='for')e.htmlFor=v;else if(a.startsWith('data-'))e.setAttribute(a,v);else if(v!==false&&v!=null)e[a]=v}for(const c of k.flat()){if(c==null||c===false)continue;e.append(c.nodeType?c:document.createTextNode(String(c)))}return e};
+const fmt=d=>new Date(d).toLocaleString([],{dateStyle:'medium',timeStyle:'short'});
+const ok=r=>{if(r.error)throw r.error;return r.data};
+const isMgr=()=>['admin','manager'].includes(S.p.role),isAdmin=()=>S.p.role==='admin';
+let tt;function toast(m,bad){const t=document.getElementById('toast');t.textContent=m;t.style.background=bad?'#B42318':'#04503B';t.style.display='block';clearTimeout(tt);tt=setTimeout(()=>t.style.display='none',4500)}
+const fail=e=>toast((e&&e.message)||'Something went wrong',true);
+function sel(opts,val,p){const s=el('select',p,opts.map(o=>el('option',{value:o.v},o.t)));if(val!=null)s.value=val;return s}
+const siteOpts=(all)=>[...(all?[{v:'',t:'All sites'}]:[]),...S.sites.filter(s=>s.is_active).map(s=>({v:s.id,t:s.name}))];
+const itemOpts=()=>S.items.filter(i=>i.is_active).map(i=>({v:i.id,t:i.sku+' – '+i.name}));
+const field=(label,input)=>el('label',{class:'f'},label,input);
+const head=(t,s,...a)=>el('div',{class:'head'},el('div',{},el('h1',{},t),el('p',{class:'sub'},s)),el('div',{class:'row'},a));
+const tbl=(h,rows,empty)=>el('div',{class:'scroll'},el('table',{},el('thead',{},el('tr',{},h.map(x=>el('th',{},x)))),el('tbody',{},rows.length?rows.map(r=>el('tr',{},r.map((c,i)=>el('td',{'data-label':h[i]},c)))):el('tr',{},el('td',{colSpan:h.length,class:'empty'},empty||'Nothing here yet.')))));
+const badge=(t,c)=>el('span',{class:'badge '+c},t);
+const TYPES={receive:'Received',issue:'Issued',transfer_out:'Transfer out',transfer_in:'Transfer in',count_adjust:'Count adjusted'};
+async function loadRef(){const [a,b]=await Promise.all([S.db.from('sites').select('*').order('name'),S.db.from('items').select('*').order('name')]);S.sites=ok(a);S.items=ok(b)}
+function csv(name,head,rows){const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const t=[head,...rows].map(r=>r.map(q).join(',')).join('\n');const a=el('a',{href:URL.createObjectURL(new Blob([t],{type:'text/csv'})),download:name});document.body.append(a);a.click();a.remove()}
+
+/* ---------- HOME ---------- */
+async function home(){
+  const name=S.p.full_name||S.p.email.split('@')[0],h=new Date().getHours();
+  const site=sel(siteOpts(true),S.p.site_id||'');
+  const k=['Total items','Low stock','Out of stock','Transfers pending','Devices out'].map((t,i)=>el('div',{class:'card kpi'},el('div',{},t),el('div',{style:i==1?'color:#9A5300':i==2?'color:#B42318':''},'–')));
+  const na=el('div',{class:'pad'}),mv=el('div',{}),watch=el('div',{class:'pad watch'});
+  const countUp=(n,to)=>{if(to===0||matchMedia('(prefers-reduced-motion:reduce)').matches){n.textContent=to.toLocaleString();return}const t0=performance.now(),f=t=>{const p=Math.min(1,(t-t0)/1100);n.textContent=Math.round(to*(1-Math.pow(1-p,3))).toLocaleString();if(p<1&&n.isConnected)requestAnimationFrame(f)};requestAnimationFrame(f)};
+  const drawWatch=(list,sid)=>watch.replaceChildren(...(list.length?list.map(i=>{
+    const q=i.stock_levels.filter(x=>!sid||x.site_id===sid).reduce((a,x)=>a+x.quantity,0),rl=i.reorder_level||0,st=q===0?'out':(rl>0&&q<=rl)?'low':'ok';
+    const max=Math.max(q,rl*4,1),pct=Math.round(q/max*100),mk=rl>0?Math.round(rl/max*100):null;
+    const bar=el('div',{class:'wbar '+st},el('i',{class:'wfill',style:'width:0%'}),mk!=null?el('u',{class:'wmark',style:'left:'+mk+'%',title:'Reorder at '+rl}):null),num=el('b',{class:'wnum'},'0');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.firstChild.style.width=(q>0?Math.max(3,pct):0)+'%'}));countUp(num,q);
+    return el('div',{},el('div',{class:'whead'},el('b',{},i.name),el('span',{class:'wst '+st},st==='out'?'Out of stock: restock now':st==='low'?'Low: order soon':'OK')),el('div',{class:'wrow'},bar,el('span',{class:'wq'},num,' '+i.unit)),el('div',{class:'m wm',style:'color:#4A5B54;font-size:12px'},rl>0?'Reorder at '+rl+(q>rl?' · '+(q-rl).toLocaleString()+' above the reorder point':' · at or below the reorder point'):'No reorder level set'))}):[el('div',{class:'empty'},'No restockable items yet. Mark an item as Consumable in Inventory.')]));
+  V.replaceChildren(
+    head((h<12?'Good morning, ':h<18?'Good afternoon, ':'Good evening, ')+name,'Here is what is happening across your sites today.',site),
+    el('section',{class:'grid'},[['Issue devices','Send handhelds out with marshals','#/devices'],['Receive stock','Add items coming in','#/stock'],['Issue stock','Record items going out','#/stock'],['New transfer','Move stock between sites','#/transfers'],['Start a count','Scan and reconcile','#/counts']].map(a=>el('a',{href:a[2],class:'card qa'},el('b',{},a[0]),el('span',{},a[1])))),
+    el('section',{class:'grid'},k),
+    el('section',{class:'card'},el('div',{class:'sec'},el('h2',{},'Stock to keep an eye on'),el('a',{href:'#/inventory',style:'font-weight:700;color:#046A4E;font-size:14px'},'Open inventory')),watch),
+    el('div',{class:'cols'},el('section',{class:'card',style:'flex:2 1 520px;min-width:0'},el('div',{class:'sec'},el('h2',{},'Recent movements'),el('a',{href:'#/reports',style:'font-weight:700;color:#046A4E;font-size:14px'},'All reports')),mv),el('section',{class:'card',style:'flex:1 1 300px;min-width:0'},el('div',{class:'sec'},el('h2',{},'Needs attention')),na)));
+  const load=async()=>{const s=site.value||null;
+    const [a,b,c,dv,w]=await Promise.all([S.db.rpc('dashboard_summary',{p_site:s}),S.db.rpc('needs_attention',{p_site:s}),S.db.from('recent_movements').select('*').order('created_at',{ascending:false}).limit(8),S.db.from('device_status').select('device_id',{count:'exact',head:true}).eq('is_out',true),S.db.from('items').select('id,name,unit,reorder_level,stock_levels(quantity,site_id)').eq('is_active',true).eq('item_type','consumable').order('name')]);
+    drawWatch(ok(w),s);
+    k[4].lastChild.textContent=dv.count??0;
+    const r=ok(a)[0]||{};[r.total_items,r.low_stock,r.out_of_stock,r.transfers_pending].forEach((v,i)=>k[i].lastChild.textContent=v??0);
+    const n=ok(b);na.replaceChildren(...(n.length?n.slice(0,6).map(i=>el('div',{class:'alert '+i.status},el('b',{},i.name),el('i',{},i.status==='out'?'Out of stock':'Low: '+i.quantity+' left'))):[el('div',{class:'empty'},'Nothing needs attention right now.')]));
+    mv.replaceChildren(tbl(['Item','Type','Qty','Site','By','When'],ok(c).map(x=>[x.item_name,TYPES[x.type]||x.type,x.quantity,x.site_name,x.created_by_name||'',fmt(x.created_at)]),'No movements yet.'))};
+  site.addEventListener('change',()=>load().catch(fail));load().catch(fail)}
+
+/* ---------- INVENTORY ---------- */
+const money=v=>v==null||v===''?'—':'E'+Number(v).toLocaleString([],{minimumFractionDigits:2,maximumFractionDigits:2});
+const dday=d=>d?new Date(String(d).length===10?d+'T00:00:00':d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
+const COND={new:['New','b-ok'],good:['Good','b-ok'],fair:['Fair','b-low'],damaged:['Damaged','b-out']};
+async function inventory(){
+  const [ra,rb,rc]=await Promise.all([S.db.from('items').select('*, stock_levels(quantity)').order('name'),
+    S.db.from('stock_movements').select('item_id,type,delta,created_at').in('type',['receive','issue','count_adjust']).order('created_at',{ascending:false}).limit(5000),
+    S.db.from('purchase_orders').select('*, items(name,sku), sites(name)').in('status',['ordered','received']).order('ordered_at',{ascending:false}).order('created_at',{ascending:false}).limit(1000)]);
+  const rows=ok(ra),orders=ok(rc),lastIn={},lastOut={},lastOrd={},onOrder={};
+  ok(rb).forEach(m=>{if(m.type==='receive'){if(!lastIn[m.item_id])lastIn[m.item_id]=m}else if(m.delta<0&&!lastOut[m.item_id])lastOut[m.item_id]=m});
+  orders.forEach(o=>{if(!lastOrd[o.item_id])lastOrd[o.item_id]=o.ordered_at;if(o.status==='ordered')onOrder[o.item_id]=(onOrder[o.item_id]||0)+o.quantity});
+  const open=orders.filter(o=>o.status==='ordered').reverse();
+  const today=new Date().toISOString().slice(0,10);
+  const value=rows.reduce((a,i)=>a+(i.cost||0)*i.stock_levels.reduce((x,s)=>x+s.quantity,0),0);
+  const dd=m=>m?el('span',{class:'nw',title:fmt(m.created_at)},dday(m.created_at),el('span',{class:'m'},(m.delta>0?'+':'')+m.delta+' units')):el('span',{class:'none'},'—');
+  const q=el('input',{type:'search',placeholder:'Search name, SKU or barcode'}),form=el('div'),body=el('div'),ordCard=el('div');
+  const statusC=(i,t)=>!i.is_active?badge('Inactive','b-gray'):t===0?badge('Out','b-out'):(i.reorder_level>0&&t<=i.reorder_level)?badge('Low','b-low'):badge('OK','b-ok');
+  const isCons=i=>i.item_type==='consumable';
+  const status=(i,t)=>isCons(i)?statusC(i,t):!i.is_active?badge('Retired','b-gray'):t>0?badge('In stock','b-ok'):badge('Not in stock','b-gray');
+  const ordCell=i=>lastOrd[i]?el('span',{class:'nw'},dday(lastOrd[i]),onOrder[i]?el('span',{class:'m',style:'color:#9A5300;font-weight:700'},onOrder[i]+' units on order'):''):el('span',{class:'none'},'—');
+  const priceCell=i=>(i.cost==null&&i.price==null)?el('span',{class:'none'},'Not set'):isMgr()?el('span',{class:'nw'},'Cost '+money(i.cost),el('span',{class:'m'},'Price '+money(i.price))):el('span',{class:'nw'},money(i.price));
+  const condCell=i=>{const c=COND[i.condition]||COND.new;return el('span',{},badge(c[0],c[1]),i.review_date?(isCons(i)?el('span',{class:'m nw',style:i.review_date<today?'color:#B42318;font-weight:700':''},(i.review_date<today?'Review overdue ':'Review ')+dday(i.review_date)):el('span',{class:'m nw'},'Review '+dday(i.review_date))):'')};
+  let tf='all';
+  const chips=el('div',{class:'row',style:'margin-bottom:12px'});
+  const drawChips=()=>chips.replaceChildren(...[['all','All'],['asset','Assets'],['consumable','Consumables']].map(([k,l])=>el('button',{type:'button',class:'fc'+(tf===k?' on':''),onclick:()=>{tf=k;drawChips();draw()}},l+' ',el('b',{},String(k==='all'?rows.length:rows.filter(i=>k==='consumable'?isCons(i):!isCons(i)).length)))));
+  const draw=()=>{const f=q.value.toLowerCase(),drop=tf==='asset'?[2,4]:[],keep=a=>a.filter((_,k)=>!drop.includes(k));
+    const H=['Item','On hand','Ordered','Last received','Last taken out',isMgr()?'Cost / Price':'Price','Condition','Status',''];
+    const R=rows.filter(i=>(tf==='all'||(tf==='consumable')===isCons(i))&&(i.name+i.sku+(i.barcode||'')+(i.category||'')).toLowerCase().includes(f)).map(i=>{const t=i.stock_levels.reduce((a,s)=>a+s.quantity,0),c=isCons(i);return[el('span',{title:i.description||''},el('span',{class:'nm'},i.name),el('span',{class:'m'},i.sku+(i.category?' · '+i.category:''))),el('span',{},el('span',{class:'num'},t.toLocaleString()),el('span',{class:'m'},i.unit+(c&&i.reorder_level>0?' · reorder at '+i.reorder_level:''))),c?ordCell(i.id):el('span',{class:'none'},'—'),dd(lastIn[i.id]),c?dd(lastOut[i.id]):el('span',{class:'none'},'—'),priceCell(i),condCell(i),status(i,t),isMgr()?el('div',{class:'acts'},c?el('button',{class:'btn alt sm',onclick:()=>order(i)},'Order'):null,el('button',{class:'btn alt sm',onclick:()=>edit(i)},'Edit'),el('button',{class:'btn del sm',onclick:()=>del(i)},'Delete')):'']});
+    body.replaceChildren(el('div',{class:'inv'},tbl(keep(H),R.map(keep),'No items match.')))};
+  const drawOrders=()=>{ordCard.replaceChildren(open.length?el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Open orders ('+open.length+')')),tbl(['Ordered','Item','Qty','Site','Supplier','Expected',''],open.map(o=>[dday(o.ordered_at),o.items.sku+' – '+o.items.name,o.quantity,o.sites.name,o.supplier||'',dday(o.expected_at),isMgr()?el('div',{class:'row'},el('button',{class:'btn sm',onclick:async()=>{try{ok(await S.db.rpc('receive_purchase_order',{p_id:o.id}));toast('Order received into stock');inventory()}catch(e){fail(e)}}},'Mark received'),el('button',{class:'btn alt sm',onclick:async()=>{if(!confirm('Cancel this order?'))return;try{ok(await S.db.from('purchase_orders').update({status:'cancelled'}).eq('id',o.id));toast('Order cancelled');inventory()}catch(e){fail(e)}}},'Cancel')):''])),''):'')};
+  const order=i=>{const f={site:sel(siteOpts(),S.p.site_id||''),qty:el('input',{type:'number',min:1,value:Math.max(1,(i.reorder_level||0)*2)}),sup:el('input',{placeholder:'Optional'}),exp:el('input',{type:'date'}),note:el('input',{placeholder:'Optional'})};
+    form.replaceChildren(el('div',{class:'card pad'},el('h2',{},'Order stock: '+i.name+' ('+i.sku+')'),el('div',{class:'row'},field('Deliver to site',f.site),field('Quantity',f.qty),field('Supplier',f.sup),field('Expected date',f.exp)),field('Note',f.note),
+      el('div',{class:'row'},el('button',{class:'btn',onclick:async()=>{try{const n=Math.floor(+f.qty.value);if(!f.site.value)throw new Error('Choose a site');if(!(n>0))throw new Error('Quantity must be 1 or more');ok(await S.db.from('purchase_orders').insert({item_id:i.id,site_id:f.site.value,quantity:n,supplier:f.sup.value.trim()||null,note:f.note.value.trim()||null,expected_at:f.exp.value||null,created_by_name:S.p.full_name||S.p.email}));toast('Order recorded');inventory()}catch(e){fail(e)}}},'Record order'),el('button',{class:'btn alt',onclick:()=>form.replaceChildren()},'Cancel'))));form.scrollIntoView({behavior:'smooth',block:'start'})};
+  const del=async i=>{if(!confirm('Delete "'+i.name+'" ('+i.sku+')? This cannot be undone.'))return;try{ok(await S.db.rpc('delete_item',{p_id:i.id,p_force:false}));toast('Item deleted');await loadRef();inventory()}catch(e){if((e.message||'')==='HAS_HISTORY'){if(!isAdmin()){toast('This item has stock history, so it cannot be deleted. Set its Status to Inactive instead.',true);return}if(!confirm('"'+i.name+'" has stock movements recorded. Deleting it will also permanently erase its stock history and levels. Delete anyway?'))return;try{ok(await S.db.rpc('delete_item',{p_id:i.id,p_force:true}));toast('Item and its history deleted');await loadRef();inventory()}catch(e2){fail(e2)}}else fail(e)}};
+  const edit=i=>{const v=i||{unit:'each',reorder_level:0,is_active:true,condition:'new',item_type:'asset'};
+    const f={sku:el('input',{value:v.sku||'',required:true}),name:el('input',{value:v.name||'',required:true}),barcode:el('input',{value:v.barcode||''}),category:el('input',{value:v.category||''}),unit:el('input',{value:v.unit,placeholder:'e.g. each, box, roll'}),typ:sel([{v:'asset',t:'Asset (bought once)'},{v:'consumable',t:'Consumable (restocked)'}],v.item_type||'asset'),rl:el('input',{type:'number',min:0,value:v.reorder_level}),act:sel([{v:'1',t:'Active'},{v:'0',t:'Inactive'}],v.is_active?'1':'0'),
+      desc:el('textarea',{rows:3,value:v.description||'',placeholder:'Detailed description',style:'width:100%;height:auto;padding:10px 14px'}),cost:el('input',{type:'number',min:0,step:'0.01',value:v.cost??''}),price:el('input',{type:'number',min:0,step:'0.01',value:v.price??''}),cond:sel([{v:'new',t:'New'},{v:'good',t:'Good'},{v:'fair',t:'Fair'},{v:'damaged',t:'Damaged'}],v.condition||'new'),rev:el('input',{type:'date',value:v.review_date||''})};
+    form.replaceChildren(el('div',{class:'card pad'},el('h2',{},i?'Edit item':'Add item'),el('div',{class:'row'},field('SKU',f.sku),field('Name',f.name),field('Barcode',f.barcode)),el('div',{class:'row'},field('Item type',f.typ),field('Category',f.category),field('Unit',f.unit),f.rlf=field('Reorder level',f.rl),field('Status',f.act)),field('Description',f.desc),el('div',{class:'row'},field('Cost (E)',f.cost),field('Price (E)',f.price),field('Condition',f.cond),field('Review date',f.rev)),
+      el('div',{class:'row'},el('button',{class:'btn',onclick:async()=>{try{const d={sku:f.sku.value.trim(),name:f.name.value.trim(),barcode:f.barcode.value.trim()||null,category:f.category.value.trim()||null,unit:f.unit.value.trim()||'each',item_type:f.typ.value,reorder_level:f.typ.value==='consumable'?(+f.rl.value||0):0,is_active:f.act.value==='1',description:f.desc.value.trim()||null,cost:f.cost.value===''?null:+f.cost.value,price:f.price.value===''?null:+f.price.value,condition:f.cond.value,review_date:f.rev.value||null,updated_at:new Date().toISOString()};if(!d.sku||!d.name)throw new Error('SKU and name are required');ok(i?await S.db.from('items').update(d).eq('id',i.id):await S.db.from('items').insert(d));toast('Item saved');await loadRef();inventory()}catch(e){fail(e)}}},'Save'),el('button',{class:'btn alt',onclick:()=>form.replaceChildren()},'Cancel'))));const tg=()=>{f.rlf.style.display=f.typ.value==='consumable'?'':'none'};f.typ.addEventListener('change',tg);tg()};
+  V.replaceChildren(head('Inventory','Everything you stock, and how much is on hand.'+(isMgr()&&value>0?' Stock value at cost: '+money(value)+'.':''),q,isMgr()?el('button',{class:'btn',onclick:()=>edit()},'Add item'):null),form,ordCard,chips,el('div',{class:'card'},body));
+  q.addEventListener('input',draw);drawChips();draw();drawOrders()}
+
+/* ---------- STOCK IN / OUT ---------- */
+async function stock(){
+  const type=sel([{v:'receive',t:'Receive (stock in)'},{v:'issue',t:'Issue (stock out)'}],'receive'),item=sel(itemOpts()),site=sel(siteOpts(),S.p.site_id||''),qty=el('input',{type:'number',min:1,value:1}),note=el('input',{placeholder:'Optional'}),find=el('input',{placeholder:'Type or scan SKU / barcode'}),have=el('p',{class:'sub'}),list=el('div');
+  const upd=async()=>{if(!item.value||!site.value){have.textContent='';return}const r=ok(await S.db.from('stock_levels').select('quantity').eq('item_id',item.value).eq('site_id',site.value).maybeSingle());have.textContent='On hand at this site: '+(r?r.quantity:0)};
+  find.addEventListener('change',()=>{const v=find.value.trim().toLowerCase();const m=S.items.find(i=>i.sku.toLowerCase()===v||(i.barcode||'').toLowerCase()===v);if(m){item.value=m.id;upd().catch(fail)}else if(v)toast('No item with that SKU or barcode',true)});
+  item.addEventListener('change',()=>upd().catch(fail));site.addEventListener('change',()=>upd().catch(fail));
+  const btn=el('button',{class:'btn',onclick:async()=>{try{const n=Math.floor(+qty.value);if(!item.value||!site.value)throw new Error('Choose an item and a site');if(!(n>0))throw new Error('Quantity must be 1 or more');btn.disabled=true;
+    ok(await S.db.from('stock_movements').insert({item_id:item.value,site_id:site.value,type:type.value,delta:type.value==='issue'?-n:n,note:note.value.trim()||null}));toast('Recorded');qty.value=1;note.value='';find.value='';await upd();await recent()}catch(e){fail(/stock_levels_quantity_check|violates check/.test(e.message||'')?{message:'Not enough stock at this site'}:e)}finally{btn.disabled=false}}},'Record');
+  const recent=async()=>{const r=ok(await S.db.from('recent_movements').select('*').order('created_at',{ascending:false}).limit(15));list.replaceChildren(tbl(['Item','Type','Qty','Site','By','When'],r.map(x=>[x.item_name,TYPES[x.type]||x.type,x.quantity,x.site_name,x.created_by_name||'',fmt(x.created_at)]),'No movements yet.'))};
+  V.replaceChildren(head('Stock in / out','Record items received or issued. Stock levels update instantly.'),
+    el('div',{class:'card pad'},el('div',{class:'row'},field('Action',type),field('Find by SKU / barcode',find)),el('div',{class:'row'},field('Item',item),field('Site',site),field('Quantity',qty)),field('Note',note),have,el('div',{class:'row'},btn)),
+    el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Latest movements')),list));
+  upd().catch(fail);recent().catch(fail)}
+
+/* ---------- TRANSFERS ---------- */
+async function transfers(){
+  const from=sel(siteOpts(),S.p.site_id||''),to=sel(siteOpts()),note=el('input',{placeholder:'Optional'}),lines=el('div',{class:'lines'}),list=el('div');
+  if(S.sites.length>1&&from.value===to.value)to.selectedIndex=(from.selectedIndex+1)%to.options.length;
+  const addLine=()=>{const it=sel(itemOpts()),q=el('input',{type:'number',min:1,value:1,style:'width:110px'});const r=el('div',{class:'row'},it,q,el('button',{class:'btn alt sm',type:'button',onclick:()=>r.remove()},'Remove'));r._g=()=>({item_id:it.value,quantity:Math.floor(+q.value)});lines.append(r)};addLine();
+  const go=el('button',{class:'btn',onclick:async()=>{try{if(from.value===to.value)throw new Error('Choose two different sites');const ls=[...lines.children].map(r=>r._g()).filter(l=>l.item_id&&l.quantity>0);if(!ls.length)throw new Error('Add at least one item');if(new Set(ls.map(l=>l.item_id)).size!==ls.length)throw new Error('Each item can only appear once');go.disabled=true;
+    const t=ok(await S.db.from('transfers').insert({from_site_id:from.value,to_site_id:to.value,note:note.value.trim()||null}).select('id').single());ok(await S.db.from('transfer_lines').insert(ls.map(l=>({...l,transfer_id:t.id}))));toast('Transfer created');transfers()}catch(e){fail(e)}finally{go.disabled=false}}},'Create transfer');
+  V.replaceChildren(head('Transfers','Move stock between sites. Stock moves when you complete the transfer.'),
+    el('div',{class:'card pad'},el('div',{class:'row'},field('From site',from),field('To site',to)),el('div',{},el('b',{},'Items'),lines),el('div',{class:'row'},el('button',{class:'btn alt sm',type:'button',onclick:addLine},'+ Add item')),field('Note',note),el('div',{class:'row'},go)),
+    el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Recent transfers')),list));
+  const rows=ok(await S.db.from('transfers').select('id,status,note,created_at,from_site:sites!transfers_from_site_id_fkey(name),to_site:sites!transfers_to_site_id_fkey(name),transfer_lines(quantity,items(name))').order('created_at',{ascending:false}).limit(30));
+  const act=(t)=>t.status!=='pending'?'':el('div',{class:'row'},el('button',{class:'btn sm',onclick:async()=>{try{ok(await S.db.rpc('complete_transfer',{p_transfer_id:t.id}));toast('Transfer completed');transfers()}catch(e){fail(/stock_levels|check/.test(e.message||'')?{message:'Not enough stock at the sending site'}:e)}}},'Complete'),el('button',{class:'btn alt sm',onclick:async()=>{try{ok(await S.db.from('transfers').update({status:'cancelled'}).eq('id',t.id));transfers()}catch(e){fail(e)}}},'Cancel'));
+  list.replaceChildren(tbl(['Created','From → To','Items','Status',''],rows.map(t=>[fmt(t.created_at),t.from_site.name+' → '+t.to_site.name,t.transfer_lines.map(l=>l.quantity+' × '+l.items.name).join(', '),badge(t.status[0].toUpperCase()+t.status.slice(1),t.status==='completed'?'b-ok':t.status==='pending'?'b-low':'b-gray'),act(t)]),'No transfers yet.'))}
+
+/* ---------- DEVICES ---------- */
+async function devices(){
+  const [a,b,c,d]=await Promise.all([S.db.from('device_status').select('*').order('tag'),
+    S.db.from('device_assignments').select('id,marshal_id,issued_at,returned_at,issued_by_name,received_by_name,note,return_note,voided_at,void_reason,devices(tag),marshals(full_name)').order('issued_at',{ascending:false}).limit(60),
+    S.db.from('marshals').select('*').order('full_name'),
+    S.db.from('device_assignments').select('marshal_id,issued_at,devices(id,tag)').is('voided_at',null).order('issued_at',{ascending:false}).limit(500)]);
+  const D=ok(a),H=ok(b),M=ok(c),J=ok(d),out=D.filter(x=>x.is_out),free=D.filter(x=>!x.is_out&&x.status==='active'),rep=D.filter(x=>x.status!=='active');
+  const today=new Date().toDateString(),late=x=>new Date(x.issued_at).toDateString()!==today;
+  const kp=(t,v,c)=>el('div',{class:'card kpi'},el('div',{},t),el('div',{style:c?'color:'+c:''},v));
+  const act=M.filter(m=>m.is_active),mar=sel(act.map(m=>({v:m.id,t:m.full_name+(m.badge_no?' ('+m.badge_no+')':'')})),(act.find(m=>m.id===S.lastMar)||act[0]||{}).id),note=el('input',{placeholder:'Optional, e.g. spare battery given'});
+  const chips=free.map(x=>{const rb=el('input',{type:'radio',name:'dev',value:x.device_id}),c=el('label',{class:'chip'},rb,x.tag);c._s=(x.tag+' '+(x.ip_address||'')).toLowerCase();c._t=x.tag;return c});
+  const box=el('div',{class:'chips',style:'display:none'},chips.length?chips:[el('p',{class:'sub'},'No devices available.')]),picked=el('p',{class:'sub',style:'margin:0;font-weight:700'}),tgl=el('button',{class:'btn alt sm',type:'button'},'Show list');
+  const show=on=>{box.style.display=on?'':'none';tgl.textContent=on?'Hide list':'Show list'};
+  tgl.addEventListener('click',()=>show(box.style.display==='none'));
+  box.addEventListener('change',()=>{const c=chips.find(c=>c.firstChild.checked);picked.textContent=c?'Selected: '+c._t:''});
+  const none=el('p',{class:'sub',style:'display:none'},'No available device matches your search.'),dq=el('input',{type:'search',placeholder:'Search device tag, e.g. SP-05',autocomplete:'off',style:'max-width:320px'});
+  dq.addEventListener('input',()=>{const q=dq.value.trim().toLowerCase();let n=0,last;chips.forEach(c=>{const m=!q||c._s.includes(q);c.style.display=m?'':'none';if(m){n++;last=c}});none.style.display=n?'none':'';if(q)show(true);if(q&&n===1){last.firstChild.checked=true;picked.textContent='Selected: '+last._t}});
+  const issue=el('button',{class:'btn',onclick:async()=>{try{const pick=chips.find(c=>c.firstChild.checked);if(!mar.value)throw new Error('Choose a marshal first');if(!pick)throw new Error('Select a device to issue');issue.disabled=true;
+    ok(await S.db.rpc('issue_device',{p_device_id:pick.firstChild.value,p_marshal_id:mar.value,p_note:note.value.trim()||null}));S.lastMar=mar.value;toast(pick._t+' issued to '+mar.options[mar.selectedIndex].text.replace(/ \(.*\)$/,''));devices()}catch(e){fail(e);issue.disabled=false}}},'Issue device');
+  const boxes=[],doRet=async(rows,good,msg)=>{try{const r=await Promise.allSettled(rows.map(x=>S.db.rpc('return_device',{p_assignment_id:x.assignment_id,p_ok:good,p_note:msg||null}).then(ok)));const bad=r.filter(z=>z.status==='rejected');bad.length?toast(bad.length+' failed: '+bad[0].reason.message,true):toast('Returned');devices()}catch(e){fail(e)}};
+  const nm=el('input'),bd=el('input'),ph=el('input',{type:'tel'});
+  const addM=el('button',{class:'btn',onclick:async()=>{try{if(!nm.value.trim())throw new Error('Enter the marshal\'s name');ok(await S.db.from('marshals').insert({full_name:nm.value.trim(),badge_no:bd.value.trim()||null,phone:ph.value.trim()||null}));toast('Marshal added');devices()}catch(e){fail(e)}}},'Add marshal');
+  const tg=el('input',{placeholder:'e.g. SP-37'}),ip=el('input',{placeholder:'10.255.225.x'});
+  const addD=el('button',{class:'btn',onclick:async()=>{try{if(!tg.value.trim())throw new Error('Enter the device tag');ok(await S.db.from('devices').insert({tag:tg.value.trim().toUpperCase(),ip_address:ip.value.trim()||null}));toast('Device added');devices()}catch(e){fail(e)}}},'Add device');
+  const eb=el('div'),delErr=e=>fail(e&&e.code==='23503'?{message:'It has history, so it cannot be deleted. Deactivate it instead.'}:e);
+  const editor=(title,fields,save)=>{eb.replaceChildren(el('div',{class:'card pad'},el('h2',{},title),el('div',{class:'row'},fields),el('div',{class:'row'},el('button',{class:'btn',onclick:async()=>{try{await save();toast('Saved');devices()}catch(e){fail(e)}}},'Save changes'),el('button',{class:'btn alt',onclick:()=>eb.replaceChildren()},'Cancel'))));eb.scrollIntoView({behavior:'smooth',block:'start'})};
+  const btn=(t,f)=>el('button',{class:'btn alt sm',onclick:f},t);
+  const editMar=m=>{const f={n:el('input',{value:m.full_name}),p:el('input',{value:m.badge_no||''}),t:el('input',{type:'tel',value:m.phone||''}),a:sel([{v:'1',t:'Active'},{v:'0',t:'Inactive'}],m.is_active?'1':'0')};editor('Edit marshal',[field('Full name',f.n),field('PI code',f.p),field('Phone',f.t),field('Status',f.a)],async()=>{if(!f.n.value.trim())throw new Error('Name is required');ok(await S.db.from('marshals').update({full_name:f.n.value.trim(),badge_no:f.p.value.trim()||null,phone:f.t.value.trim()||null,is_active:f.a.value==='1'}).eq('id',m.id))})};
+  const delMar=async m=>{if(!confirm('Delete '+m.full_name+'? This cannot be undone.'))return;try{ok(await S.db.from('marshals').delete().eq('id',m.id));toast('Deleted');devices()}catch(e){delErr(e)}};
+  const editDev=x=>{const f={t:el('input',{value:x.tag}),i:el('input',{value:x.ip_address||''}),n:el('input',{value:x.note||''}),s:sel([{v:'active',t:'In service'},{v:'repair',t:'In repair'},{v:'lost',t:'Lost'}],x.status)};editor('Edit device',[field('Tag',f.t),field('IP address',f.i),field('Note',f.n),field('Status',f.s)],async()=>{if(!f.t.value.trim())throw new Error('Tag is required');ok(await S.db.from('devices').update({tag:f.t.value.trim().toUpperCase(),ip_address:f.i.value.trim()||null,note:f.n.value.trim()||null,status:f.s.value}).eq('id',x.device_id))})};
+  const delDev=async x=>{if(!confirm('Delete device '+x.tag+'? This cannot be undone.'))return;try{ok(await S.db.from('devices').delete().eq('id',x.device_id));toast('Deleted');devices()}catch(e){delErr(e)}};
+  const chgMar=r=>{const s=sel(M.filter(m=>m.is_active||m.id===r.marshal_id).map(m=>({v:m.id,t:m.full_name+(m.badge_no?' ('+m.badge_no+')':'')})),r.marshal_id);editor('Change marshal for '+r.devices.tag,[field('Marshal',s)],async()=>ok(await S.db.rpc('change_assignment_marshal',{p_id:r.id,p_marshal_id:s.value})))};
+  const voidAs=async r=>{const why=prompt('Why is this record wrong? (e.g. wrong device, issued by mistake)');if(why===null)return;try{ok(await S.db.rpc('void_assignment',{p_id:r.id,p_reason:why}));toast('Record voided. The device is free again.');devices()}catch(e){fail(e)}};
+  const undoRet=async r=>{if(!confirm('Mark '+r.devices.tag+' as still out with '+r.marshals.full_name+'?'))return;try{ok(await S.db.rpc('undo_return',{p_id:r.id}));toast('Return undone');devices()}catch(e){fail(e)}};
+  const histAct=r=>!isMgr()||r.voided_at?'':el('div',{class:'row'},r.returned_at?btn('Undo return',()=>undoRet(r)):btn('Change marshal',()=>chgMar(r)),btn('Void',()=>voidAs(r)));
+  const histIn=r=>r.voided_at?el('span',{},badge('Voided','b-gray'),r.void_reason?' '+r.void_reason:''):r.returned_at?fmt(r.returned_at):badge('Still out','b-low');
+  const stBadge=x=>x.status==='active'?badge('In service','b-ok'):badge(x.status==='repair'?'In repair':'Lost','b-out');
+  /* ---- compact, searchable lists ---- */
+  const ui=(S.ui=S.ui||{});
+  const clist=(key,o)=>{
+    const st=ui[key]=ui[key]||{q:'',f:'all',all:false},pg=o.page||999;
+    const inp=el('input',{type:'search',placeholder:o.ph,autocomplete:'off',class:'cq',value:st.q});
+    const fch=el('div',{class:'fchips'}),list=el('div',{class:'clist '+(o.cls||'')}),cnt=el('span',{class:'sub'}),more=el('button',{class:'btn alt sm',type:'button'});
+    const paint=()=>{
+      const q=st.q.trim().toLowerCase();
+      fch.replaceChildren(...o.filters.map(([k,l,fn])=>el('button',{type:'button',class:'fc'+(st.f===k?' on':''),onclick:()=>{st.f=k;paint()}},l+' ',el('b',{},o.items.filter(fn).length))));
+      const fn=o.filters.find(f=>f[0]===st.f)[2],r=o.items.filter(x=>fn(x)&&(!q||o.text(x).includes(q)));
+      const narrowed=!!q||st.f!=='all',shown=(st.all||narrowed)?r:r.slice(0,pg);
+      list.replaceChildren(...(shown.length?shown.map(o.row):[el('p',{class:'empty'},o.items.length?'Nothing matches your search.':o.empty)]));
+      cnt.textContent='Showing '+shown.length+' of '+o.items.length;
+      more.style.display=(!narrowed&&r.length>pg)?'':'none';
+      more.textContent=st.all?'Show fewer':'Show all '+r.length;
+    };
+    inp.addEventListener('input',()=>{st.q=inp.value;paint()});
+    more.addEventListener('click',()=>{st.all=!st.all;paint()});
+    paint();
+    const w=el('div',{},el('div',{class:'ctools'},inp,fch),o.mid||null,list,el('div',{class:'cfoot'},cnt,more));
+    w.repaint=paint;return w;
+  };
+  if(!window._mm){window._mm=1;document.addEventListener('click',e=>document.querySelectorAll('details.more[open]').forEach(d=>{if(!d.contains(e.target))d.open=false}))}
+  const menu=items=>{const b=items.filter(Boolean);return b.length?el('details',{class:'more'},el('summary',{title:'More actions'},'⋯'),el('div',{class:'menu'},b)):null};
+  const dbtn=(t,f)=>{const b=btn(t,f);b.classList.add('dg');return b};
+  const addPanel=(label,title,fields,go)=>{const p=el('div',{class:'pad addp',style:'display:none'},el('h2',{},title),el('div',{class:'row'},fields),el('div',{class:'row'},go));const t=el('button',{class:'btn sm',type:'button'},'+ '+label);t.addEventListener('click',()=>{const o=p.style.display==='none';p.style.display=o?'':'none';t.textContent=o?'× Close':'+ '+label});return[t,p]};
+  const dBadge=x=>x.is_out?badge('Out','b-low'):stBadge(x);
+  const Ds=[...D].sort((a,b)=>a.tag.localeCompare(b.tag,undefined,{numeric:true}));
+  const byM={};out.forEach(x=>(byM[x.marshal_name]=byM[x.marshal_name]||[]).push(x.tag));
+  const toggleRepair=x=>async()=>{try{ok(await S.db.from('devices').update({status:x.status==='active'?'repair':'active'}).eq('id',x.device_id));devices()}catch(e){fail(e)}};
+  const devRow=x=>el('div',{class:'crow'},
+    el('div',{class:'c-main'},el('b',{class:'c-tag'},x.tag),dBadge(x)),
+    el('div',{class:'c-meta'},el('span',{class:'c-where'},x.is_out?x.marshal_name:'Office'),x.ip_address?el('span',{class:'c-ip'},x.ip_address):null),
+    isMgr()?el('div',{class:'c-act'},btn('Edit',()=>editDev(x)),menu([!x.is_out?btn(x.status==='active'?'Mark in repair':'Back in service',toggleRepair(x)):null,!x.is_out?dbtn('Delete',()=>delDev(x)):null])):null);
+  const lastBy={};J.forEach(r=>{if(r.marshal_id&&r.devices&&!lastBy[r.marshal_id])lastBy[r.marshal_id]={id:r.devices.id,tag:r.devices.tag}});
+  const freeIds=new Set(free.map(x=>x.device_id));
+  const prevFor=m=>{const l=lastBy[m.id];return m.is_active&&l&&!(byM[m.full_name]||[]).length&&freeIds.has(l.id)?l:null};
+  const reissue=async list=>{try{const r=await Promise.allSettled(list.map(([m,l])=>S.db.rpc('issue_device',{p_device_id:l.id,p_marshal_id:m.id,p_note:null}).then(ok)));const bad=r.filter(z=>z.status==='rejected');if(bad.length)toast(bad.length+' failed: '+bad[0].reason.message,true);else{if(list.length===1)S.lastMar=list[0][0].id;toast(list.length===1?list[0][1].tag+' issued to '+list[0][0].full_name:list.length+' devices issued')}devices()}catch(e){fail(e)}};
+  const cand=[],usedD=new Set();M.forEach(m=>{const l=prevFor(m);if(l&&!usedD.has(l.id)){usedD.add(l.id);cand.push([m,l])}});
+  const bulk=cand.length?el('button',{class:'btn alt sm',type:'button',onclick:()=>{if(confirm('Reissue previous devices?\n\n'+cand.map(([m,l])=>m.full_name+' → '+l.tag).join('\n')))reissue(cand)}},'Reissue all previous ('+cand.length+')'):null;
+  const marRow=m=>{const dv=byM[m.full_name]||[],pv=prevFor(m);return el('div',{class:'crow'},
+    el('div',{class:'c-main'},el('b',{class:'c-tag c-nm'},m.full_name),m.is_active?null:badge('Inactive','b-gray')),
+    el('div',{class:'c-meta'},m.badge_no?el('span',{class:'c-ip'},piFmt(m.badge_no)):null,m.phone?el('a',{class:'c-ip',href:'tel:'+m.phone},m.phone):null,dv.map(t=>el('span',{class:'pill'},t))),
+    el('div',{class:'c-act'},pv?el('button',{class:'btn sm',type:'button',title:'Issue the device this marshal had last time',onclick:()=>reissue([[m,pv]])},'Reissue '+pv.tag):null,
+      isMgr()?btn('Edit',()=>editMar(m)):null,
+      isMgr()?menu([btn(m.is_active?'Deactivate':'Activate',async()=>{try{ok(await S.db.from('marshals').update({is_active:!m.is_active}).eq('id',m.id));devices()}catch(e){fail(e)}}),dbtn('Delete',()=>delMar(m))]):null))};
+  const [addDT,addDP]=addPanel('Add device','Add a device',[field('Tag',tg),field('IP address',ip)],el('div',{class:'row'},addD));
+  const [addMT,addMP]=addPanel('Add marshal','Add a marshal',[field('Full name',nm),field('PI code',bd),field('Phone',ph)],el('div',{class:'row'},addM));
+  const piFmt=b=>'PI-'+String(b).trim().replace(/^PI[\s-]*/i,'');
+  const sfmt=d=>new Date(d).toLocaleString([],{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  const shortN=n=>{const p=(n||'').trim().split(/\s+/);return p.length>1?p[0]+' '+p[p.length-1][0]+'.':n};
+  const det=el('div',{class:'det'});
+  const clearSel=()=>document.querySelectorAll('.tl.sel').forEach(n=>n.classList.remove('sel'));
+  const showDet=x=>det.replaceChildren(el('div',{class:'detin'},
+    el('div',{class:'dettop'},el('b',{class:'c-tag'},x.tag),dBadge(x),el('span',{class:'c-ip'},x.ip_address||'no IP'),el('button',{class:'btn alt sm',type:'button',onclick:()=>{ui.devSel=null;det.replaceChildren();clearSel()}},'Close')),
+    el('p',{class:'sub',style:'margin:0'},(x.is_out?'With '+x.marshal_name+' since '+sfmt(x.issued_at)+(x.issued_by_name?' (issued by '+x.issued_by_name+')':''):'In the office'+(x.status!=='active'?' · '+(x.status==='repair'?'in repair':'lost'):''))+(x.note?' · '+x.note:'')),
+    isMgr()?el('div',{class:'row'},btn('Edit',()=>editDev(x)),!x.is_out?btn(x.status==='active'?'Mark in repair':'Back in service',toggleRepair(x)):null,!x.is_out?dbtn('Delete',()=>delDev(x)):null):null));
+  const tileRow=x=>{const k=x.is_out?'out':x.status==='active'?'off':'bad';
+    const b=el('button',{type:'button',class:'tl '+k+(ui.devSel===x.device_id?' sel':''),title:x.tag+(x.is_out?' · '+x.marshal_name:''),onclick:()=>{ui.devSel=x.device_id;clearSel();b.classList.add('sel');showDet(x)}},el('b',{},x.tag),el('span',{},x.is_out?shortN(x.marshal_name):x.status==='active'?'Office':x.status==='repair'?'Repair':'Lost'));return b};
+  {const s0=Ds.find(x=>x.device_id===ui.devSel);if(s0)showDet(s0)}
+  const devCard=el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'All devices ('+D.length+')'),isMgr()?addDT:null),isMgr()?addDP:null,
+    clist('dev',{items:Ds,cls:'tiles',mid:det,ph:'Search tag, IP or marshal…',empty:'No devices yet.',text:x=>(x.tag+' '+(x.ip_address||'')+' '+(x.marshal_name||'')+' '+(x.note||'')).toLowerCase(),
+      filters:[['all','All',()=>true],['office','In office',x=>!x.is_out&&x.status==='active'],['out','Out',x=>x.is_out],['rep','Repair / lost',x=>x.status!=='active']],row:tileRow}));
+  const marCard=el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Marshals ('+M.length+')'),el('div',{class:'row'},bulk,isMgr()?addMT:null)),isMgr()?addMP:null,
+    clist('mar',{items:M,page:12,cls:'two',ph:'Search name, PI code, phone or device…',empty:'No marshals yet.',text:m=>(m.full_name+' '+(m.badge_no||'')+' '+(m.phone||'')+' '+(byM[m.full_name]||[]).join(' ')).toLowerCase(),
+      filters:[['all','All',()=>true],['act','Active',m=>m.is_active],['has','Has a device',m=>(byM[m.full_name]||[]).length>0],['off','Inactive',m=>!m.is_active]],row:marRow}));
+  const chk=new Set();
+  const outWrap=clist('out',{items:out,page:15,ph:'Search tag or marshal…',empty:'Every device is back in the office.',text:x=>(x.tag+' '+x.marshal_name+' '+(x.issued_by_name||'')).toLowerCase(),
+    filters:[['all','All',()=>true],['late','Not returned',late],['today','Out today',x=>!late(x)]],
+    row:x=>{const cb=el('input',{type:'checkbox',checked:chk.has(x.assignment_id),onchange:()=>cb.checked?chk.add(x.assignment_id):chk.delete(x.assignment_id)});
+      return el('div',{class:'crow'},el('div',{class:'c-main'},cb,el('b',{class:'c-tag'},x.tag),late(x)?badge('Not returned','b-out'):badge('Out today','b-low')),
+        el('div',{class:'c-meta'},el('span',{class:'c-where'},x.marshal_name),el('span',{class:'c-ip'},sfmt(x.issued_at)+(x.issued_by_name?' · by '+x.issued_by_name:''))),
+        el('div',{class:'c-act'},el('button',{class:'btn sm',type:'button',onclick:()=>doRet([x],true)},'Return'),el('button',{class:'btn alt sm',type:'button',onclick:()=>{const m=prompt('What is wrong with '+x.tag+'?');if(m)doRet([x],false,m)}},'Damaged')))}});
+  const allBtn=el('button',{class:'btn alt sm',type:'button',onclick:()=>{const on=out.some(x=>!chk.has(x.assignment_id));out.forEach(x=>on?chk.add(x.assignment_id):chk.delete(x.assignment_id));outWrap.repaint()}},'Tick / untick all');
+  const retSel=el('button',{class:'btn sm',type:'button',onclick:()=>{const r=out.filter(x=>chk.has(x.assignment_id));if(!r.length)return toast('Tick the devices that came back',true);doRet(r,true)}},'Return ticked');
+  const outCard=el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Out with marshals ('+out.length+')'),out.length?el('div',{class:'row'},allBtn,retSel):null),outWrap);
+  const hisWrap=clist('his',{items:H,page:12,ph:'Search device, marshal or staff…',empty:'No history yet.',text:r=>(r.devices.tag+' '+r.marshals.full_name+' '+(r.issued_by_name||'')+' '+(r.received_by_name||'')).toLowerCase(),
+    filters:[['all','All',()=>true],['still','Still out',r=>!r.returned_at&&!r.voided_at],['ret','Returned',r=>!!r.returned_at&&!r.voided_at],['void','Voided',r=>!!r.voided_at]],
+    row:r=>el('div',{class:'crow'},el('div',{class:'c-main'},el('b',{class:'c-tag'},r.devices.tag),r.voided_at?badge('Voided','b-gray'):r.returned_at?badge('Returned','b-ok'):badge('Still out','b-low')),
+      el('div',{class:'c-meta'},el('span',{class:'c-where'},r.marshals.full_name),el('span',{class:'c-ip'},sfmt(r.issued_at)+' → '+(r.returned_at?sfmt(r.returned_at):'—')+(r.issued_by_name?' · issued by '+r.issued_by_name:'')+(r.received_by_name?' · received by '+r.received_by_name:'')+(r.voided_at&&r.void_reason?' · '+r.void_reason:''))),
+      isMgr()&&!r.voided_at?el('div',{class:'c-act'},menu([r.returned_at?btn('Undo return',()=>undoRet(r)):btn('Change marshal',()=>chgMar(r)),dbtn('Void',()=>voidAs(r))])):null)});
+  const hisCard=el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Recent history'),el('button',{class:'btn alt sm',onclick:()=>csv('device-log.csv',['Device','Marshal','Out','In','Issued by','Received by','Note on issue','Note on return','Voided','Void reason'],H.map(r=>[r.devices.tag,r.marshals.full_name,r.issued_at,r.returned_at||'',r.issued_by_name,r.received_by_name,r.note,r.return_note,r.voided_at||'',r.void_reason||'']))},'Download CSV')),hisWrap);
+  const stat=(t,v,c)=>el('div',{class:'stat'},el('b',{style:c?'color:'+c:''},v),el('span',{},t));
+  const tabs=[['out','Out now',out.length],['dev','Devices',D.length],['mar','Marshals',M.length],['his','History',H.length]],panels={out:outCard,dev:devCard,mar:marCard,his:hisCard},tabBar=el('div',{class:'tabs'});
+  const showTab=k=>{ui.tab=k;tabBar.replaceChildren(...tabs.map(([id,l,n])=>el('button',{type:'button',class:'tab'+(k===id?' on':''),onclick:()=>showTab(id)},l+' ',el('b',{},n))));Object.entries(panels).forEach(([id,p])=>p.style.display=id===k?'':'none')};
+  showTab(ui.tab||(out.length?'out':'dev'));
+  V.replaceChildren(head('Devices','Issue handhelds to marshals in the morning and check them back in each afternoon.'),eb,
+    el('div',{class:'strip'},stat('Total devices',D.length),stat('In the office',free.length,'#04503B'),stat('Out with marshals',out.length,'#9A5300'),stat('In repair / lost',rep.length,rep.length?'#B42318':'')),
+    el('div',{class:'card pad'},el('h2',{},'Issue a device'),el('div',{class:'row'},field('Marshal',mar),field('Note',note)),el('div',{style:'display:flex;flex-direction:column;gap:10px'},el('b',{},'Available devices ('+free.length+')'),el('div',{class:'row'},dq,tgl),picked,box,none),el('div',{class:'row'},issue)),
+    tabBar,outCard,devCard,marCard,hisCard)}
+
+/* ---------- STOCK COUNTS ---------- */
+async function counts(id){
+  if(id)return countDetail(id);
+  const site=sel(siteOpts(),S.p.site_id||''),list=el('div');
+  const go=el('button',{class:'btn',onclick:async()=>{try{go.disabled=true;if(!site.value)throw new Error('Choose a site');
+    const c=ok(await S.db.from('stock_counts').insert({site_id:site.value}).select('id').single());const lv=ok(await S.db.from('stock_levels').select('item_id,quantity').eq('site_id',site.value));const m=Object.fromEntries(lv.map(l=>[l.item_id,l.quantity]));
+    const ls=S.items.filter(i=>i.is_active).map(i=>({count_id:c.id,item_id:i.id,expected:m[i.id]||0}));if(ls.length)ok(await S.db.from('stock_count_lines').insert(ls));location.hash='#/counts/'+c.id}catch(e){fail(e);go.disabled=false}}},'Start count');
+  V.replaceChildren(head('Stock counts','Count what is physically on the shelf and reconcile the differences.'),el('div',{class:'card pad'},el('div',{class:'row'},field('Site',site),go)),el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Counts')),list));
+  const r=ok(await S.db.from('stock_counts').select('id,status,started_at,closed_at,sites(name)').order('started_at',{ascending:false}).limit(30));
+  list.replaceChildren(tbl(['Started','Site','Status',''],r.map(c=>[fmt(c.started_at),c.sites.name,badge(c.status==='open'?'Open':'Closed',c.status==='open'?'b-low':'b-ok'),el('a',{href:'#/counts/'+c.id,class:'btn alt sm',style:'display:inline-flex;align-items:center'},c.status==='open'?'Continue':'View')]),'No counts yet.'))}
+async function countDetail(id){
+  const c=ok(await S.db.from('stock_counts').select('id,status,started_at,sites(name)').eq('id',id).single());
+  const ls=ok(await S.db.from('stock_count_lines').select('item_id,expected,counted,items(name,sku)').eq('count_id',id));ls.sort((a,b)=>a.items.name.localeCompare(b.items.name));
+  const open=c.status==='open',ins=ls.map(l=>el('input',{type:'number',min:0,value:l.counted??'',disabled:!open,placeholder:'–'})),vr=ls.map(()=>el('span',{}));
+  const show=()=>ls.forEach((l,i)=>{const v=ins[i].value===''?null:+ins[i].value-l.expected;vr[i].textContent=v==null?'':(v>0?'+':'')+v;vr[i].style.color=v?'#B42318':'#4A5B54';vr[i].style.fontWeight=700});ins.forEach(i=>i.addEventListener('input',show));show();
+  const save=async()=>ok(await S.db.from('stock_count_lines').upsert(ls.map((l,i)=>({count_id:id,item_id:l.item_id,expected:l.expected,counted:ins[i].value===''?null:Math.max(0,Math.floor(+ins[i].value))})).filter(r=>r.counted!==null),{onConflict:'count_id,item_id'}));
+  V.replaceChildren(head('Count – '+c.sites.name,'Started '+fmt(c.started_at)+' · '+(open?'Open':'Closed'),el('a',{href:'#/counts',class:'btn alt',style:'display:inline-flex;align-items:center'},'Back'),
+    open?el('button',{class:'btn alt',onclick:async()=>{try{await save();toast('Progress saved')}catch(e){fail(e)}}},'Save progress'):null,
+    open?el('button',{class:'btn',onclick:async()=>{if(!confirm('Close this count? Differences will be applied to stock.'))return;try{await save();ok(await S.db.rpc('close_stock_count',{p_count_id:id}));toast('Count closed and stock adjusted');location.hash='#/counts'}catch(e){fail(e)}}},'Close & apply'):null),
+    el('div',{class:'card'},tbl(['SKU','Item','Expected','Counted','Difference'],ls.map((l,i)=>[l.items.sku,l.items.name,l.expected,ins[i],vr[i]]),'No items.')))}
+
+/* ---------- REPORTS ---------- */
+async function reports(){
+  const today=new Date().toISOString().slice(0,10),from=el('input',{type:'date',value:new Date(Date.now()-30*864e5).toISOString().slice(0,10)}),to=el('input',{type:'date',value:today}),site=sel(siteOpts(true),''),type=sel([{v:'',t:'All types'},...Object.entries(TYPES).map(([v,t])=>({v,t}))],''),a=el('div'),b=el('div');
+  let stockRows=[],mvRows=[];
+  const run=async()=>{try{
+    let q1=S.db.from('stock_levels').select('quantity,items(sku,name,reorder_level),sites(name)');if(site.value)q1=q1.eq('site_id',site.value);
+    stockRows=ok(await q1).sort((x,y)=>x.items.name.localeCompare(y.items.name));
+    a.replaceChildren(tbl(['SKU','Item','Site','On hand','Reorder at'],stockRows.map(r=>[r.items.sku,r.items.name,r.sites.name,r.quantity,r.items.reorder_level]),'No stock recorded.'));
+    let q2=S.db.from('stock_movements').select('created_at,type,delta,note,created_by_name,items(sku,name),sites(name)').gte('created_at',from.value+'T00:00:00').lte('created_at',to.value+'T23:59:59').order('created_at',{ascending:false}).limit(1000);if(site.value)q2=q2.eq('site_id',site.value);if(type.value)q2=q2.eq('type',type.value);
+    mvRows=ok(await q2);b.replaceChildren(tbl(['When','Item','Type','Change','Site','By','Note'],mvRows.map(r=>[fmt(r.created_at),r.items.name,TYPES[r.type],(r.delta>0?'+':'')+r.delta,r.sites.name,r.created_by_name||'',r.note||'']),'No movements in this period.'))}catch(e){fail(e)}};
+  [from,to,site,type].forEach(x=>x.addEventListener('change',run));
+  V.replaceChildren(head('Reports','Stock on hand and movement history. Download any report as a spreadsheet file.'),el('div',{class:'card pad'},el('div',{class:'row'},field('From',from),field('To',to),field('Site',site),field('Movement type',type))),
+    el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Stock on hand'),el('button',{class:'btn alt sm',onclick:()=>csv('stock-on-hand.csv',['SKU','Item','Site','On hand','Reorder at'],stockRows.map(r=>[r.items.sku,r.items.name,r.sites.name,r.quantity,r.items.reorder_level]))},'Download CSV')),a),
+    el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Movements'),el('button',{class:'btn alt sm',onclick:()=>csv('movements.csv',['When','SKU','Item','Type','Change','Site','By','Note'],mvRows.map(r=>[r.created_at,r.items.sku,r.items.name,TYPES[r.type],r.delta,r.sites.name,r.created_by_name,r.note]))},'Download CSV')),b));run()}
+
+/* ---------- USERS (admin) ---------- */
+async function users(){
+  if(!isAdmin()){V.replaceChildren(head('Users','Only admins can manage users.'));return}
+  const ROLES=[{v:'admin',t:'Admin'},{v:'manager',t:'Manager'},{v:'operator',t:'Operator'}],list=el('div');
+  const f={name:el('input'),email:el('input',{type:'email'}),pw:el('input',{type:'text',placeholder:'Min 8 characters'}),role:sel(ROLES,'operator'),site:sel([{v:'',t:'No site'},...siteOpts()],'')};
+  const add=el('button',{class:'btn',onclick:async()=>{try{add.disabled=true;ok(await S.db.rpc('admin_create_user',{p_email:f.email.value,p_password:f.pw.value,p_full_name:f.name.value,p_role:f.role.value,p_site_id:f.site.value||null}));toast('User created. Share the temporary password with them.');users()}catch(e){fail(e);add.disabled=false}}},'Add user');
+  V.replaceChildren(head('Users','Add people and control what they can do.'),
+    el('div',{class:'card pad'},el('h2',{},'Add user'),el('div',{class:'row'},field('Full name',f.name),field('Email',f.email),field('Temporary password',f.pw)),el('div',{class:'row'},field('Role',f.role),field('Site',f.site)),el('div',{class:'row'},add)),
+    el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Team')),list));
+  const r=ok(await S.db.from('profiles').select('*').order('created_at'));
+  list.replaceChildren(tbl(['Name','Email','Role','Site','Active',''],r.map(u=>{const n=el('input',{value:u.full_name||''}),ro=sel(ROLES,u.role),si=sel([{v:'',t:'No site'},...siteOpts()],u.site_id||''),ac=el('input',{type:'checkbox',checked:u.is_active,style:'width:20px;height:20px;min-width:0'});
+    return[n,u.email,ro,si,ac,el('button',{class:'btn alt sm',onclick:async()=>{try{if(u.id===S.p.id&&(ro.value!=='admin'||!ac.checked))throw new Error('You cannot remove your own admin access');ok(await S.db.from('profiles').update({full_name:n.value.trim()||null,role:ro.value,site_id:si.value||null,is_active:ac.checked}).eq('id',u.id));toast('Saved')}catch(e){fail(e)}}},'Save')]})))}
+
+/* ---------- SETTINGS ---------- */
+async function settings(){
+  const nm=el('input',{value:S.p.full_name||''}),p1=el('input',{type:'password',autocomplete:'new-password'}),p2=el('input',{type:'password',autocomplete:'new-password'}),sl=el('div');
+  const drawSites=()=>sl.replaceChildren(tbl(['Code','Name','Status',''],S.sites.map(s=>[s.code,s.name,badge(s.is_active?'Active':'Inactive',s.is_active?'b-ok':'b-gray'),isMgr()?el('button',{class:'btn alt sm',onclick:async()=>{try{ok(await S.db.from('sites').update({is_active:!s.is_active}).eq('id',s.id));await loadRef();drawSites()}catch(e){fail(e)}}},s.is_active?'Deactivate':'Activate'):'']),'No sites yet.'));
+  const sc=el('input',{placeholder:'e.g. MBA'}),sn=el('input',{placeholder:'e.g. Mbabane Main'});
+  V.replaceChildren(head('Settings','Your account and your sites.'),
+    el('div',{class:'card pad'},el('h2',{},'My profile'),el('div',{class:'row'},field('Full name',nm),field('Email',el('input',{value:S.p.email,disabled:true})),field('Role',el('input',{value:S.p.role,disabled:true}))),el('div',{class:'row'},el('button',{class:'btn',onclick:async()=>{try{ok(await S.db.from('profiles').update({full_name:nm.value.trim()||null}).eq('id',S.p.id));S.p.full_name=nm.value.trim()||null;paintMe();toast('Profile saved')}catch(e){fail(e)}}},'Save'))),
+    el('div',{class:'card pad'},el('h2',{},'Change password'),el('div',{class:'row'},field('New password',p1),field('Repeat new password',p2)),el('div',{class:'row'},el('button',{class:'btn',onclick:async()=>{try{if(p1.value.length<8)throw new Error('Use at least 8 characters');if(p1.value!==p2.value)throw new Error('The passwords do not match');ok(await S.db.auth.updateUser({password:p1.value}));p1.value=p2.value='';toast('Password changed')}catch(e){fail(e)}}},'Change password'))),
+    el('div',{class:'card'},el('div',{class:'sec'},el('h2',{},'Sites')),sl,isMgr()?el('div',{class:'pad'},el('div',{class:'row'},field('Code',sc),field('Name',sn)),el('div',{class:'row'},el('button',{class:'btn',onclick:async()=>{try{if(!sc.value.trim()||!sn.value.trim())throw new Error('Enter a code and a name');ok(await S.db.from('sites').insert({code:sc.value.trim().toUpperCase(),name:sn.value.trim()}));sc.value=sn.value='';await loadRef();drawSites();toast('Site added')}catch(e){fail(e)}}},'Add site'))):null));drawSites()}
+
+/* ---------- SHELL ---------- */
+const ROUTES={home:['Home',home],inventory:['Inventory',inventory],stock:['Stock in / out',stock],transfers:['Transfers',transfers],devices:['Devices',devices],counts:['Stock counts',counts],reports:['Reports',reports],users:['Users',users,'admin'],settings:['Settings',settings]};
+function paintMe(){const n=S.p.full_name||S.p.email.split('@')[0];document.getElementById('uname').textContent=n;document.getElementById('urole').textContent=S.p.role[0].toUpperCase()+S.p.role.slice(1)+(S.sites.find(s=>s.id===S.p.site_id)?' · '+S.sites.find(s=>s.id===S.p.site_id).name:'')}
+async function route(){
+  const [r,arg]=(location.hash.replace(/^#\//,'')||'home').split('/');const R=ROUTES[r]||ROUTES.home;
+  document.getElementById('nav').replaceChildren(...Object.entries(ROUTES).filter(([k,v])=>v[2]!=='admin'||isAdmin()).flatMap(([k,v])=>[k==='users'?el('div',{class:'sep'}):null,el('a',{href:'#/'+k,class:k===(ROUTES[r]?r:'home')?'on':''},v[0])]).filter(Boolean));
+  document.querySelector('aside').classList.remove('open');document.getElementById('burger').setAttribute('aria-expanded','false');scrollTo(0,0);
+  V.replaceChildren(el('p',{class:'sub'},'Loading…'));
+  try{await R[1](arg)}catch(e){V.replaceChildren(el('p',{class:'sub'},'Could not load this page.'));fail(e)}}
+async function init(){
+  for(const st of [localStorage,sessionStorage]){const c=window.supabase.createClient(URL_,KEY,{auth:{storage:st}});const {data}=await c.auth.getSession();if(data.session){S.db=c;break}}
+  if(!S.db){location.replace('index.html');return}
+  const {data:p}=await S.db.rpc('current_profile');
+  if(!p||!p.is_active){await S.db.auth.signOut();location.replace('index.html');return}
+  S.p=p;await loadRef();paintMe();
+  document.getElementById('burger').addEventListener('click',()=>{const a=document.querySelector('aside'),o=a.classList.toggle('open');document.getElementById('burger').setAttribute('aria-expanded',o)});
+  document.getElementById('out').addEventListener('click',async()=>{await S.db.auth.signOut();location.replace('index.html')});
+  addEventListener('hashchange',route);route()}
+init().catch(fail);
+</script>
+</body>
+</html>
